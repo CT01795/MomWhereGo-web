@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:mom_where_go/firebase_options.dart';
-
+ 
 import 'pages/history_events_page.dart';
 import 'pages/planned_events_page.dart';
 import 'pages/suggested_events_page.dart';
