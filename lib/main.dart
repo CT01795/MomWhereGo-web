@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       ),
       //home: const MyHomePage(title: 'Dear, Where Are We Going?'),
       debugShowCheckedModeBanner: false,
-      home: SuggestedEventsPage(), // 👈 這裡要是你要的首頁
+      home: kIsWeb ? SuggestedEventsPage() : const MyHomePage(title: 'Dear, Where Are We Going?'), // 👈 這裡要是你要的首頁
     );
   }
 }

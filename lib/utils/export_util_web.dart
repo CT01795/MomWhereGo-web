@@ -1,24 +1,14 @@
-export 'export_util_stub.dart'
-    if (dart.library.io) 'export_util_io.dart'
-    if (dart.library.html) 'export_util_web.dart';
-
-/*import 'dart:io' as io; // For mobile/desktop
+import 'dart:typed_data';
+import 'dart:html' as html;
 import 'package:excel/excel.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/utils/utils.dart';
-import 'package:path_provider/path_provider.dart';
 
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
-
-/// 匯出活動為 Excel
 Future<void> exportEventsToExcel(BuildContext context, List<Event> events) async {
   final excel = Excel.createExcel();
   final sheet = excel['Sheet1'];
 
-  // 👉 表頭
   sheet.appendRow([
     TextCellValue('活動名稱_______________________'), TextCellValue('關鍵字_______________________'),
     TextCellValue('縣市'), TextCellValue('地點____________________'), TextCellValue('費用 '),
@@ -27,7 +17,6 @@ Future<void> exportEventsToExcel(BuildContext context, List<Event> events) async
     TextCellValue('描述______'), TextCellValue('相關單位'),
   ]);
 
-  // 👉 活動與子活動
   for (final e in events) {
     sheet.appendRow([
       TextCellValue(e.name), TextCellValue(e.type),
@@ -51,35 +40,10 @@ Future<void> exportEventsToExcel(BuildContext context, List<Event> events) async
   final excelBytes = Uint8List.fromList(excel.encode()!);
   final filename = 'exported_events_${DateTime.now().millisecondsSinceEpoch}.xlsx';
 
-  if (kIsWeb) {
-    _downloadOnWeb(filename, excelBytes);
-    showSnackBar(context, '✅ 已在瀏覽器下載：$filename');
-    return;
-  }
-
-  try {
-    final file = await _saveToFile(filename, excelBytes);
-    // ignore: use_build_context_synchronously
-    showSnackBar(context, '✅ 匯出成功：${file.path}');
-  } catch (e) {
-    // ignore: use_build_context_synchronously
-    showSnackBar(context, '❌ 匯出失敗：$e');
-  }
+  _downloadOnWeb(filename, excelBytes);
+  showSnackBar(context, '✅ 已在瀏覽器下載：$filename');
 }
 
-/// 日期格式
-String _formatDate(DateTime? date) {
-  return date != null
-      ? '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}'
-      : '';
-}
-
-/// 時間格式
-String _formatTime(BuildContext context, TimeOfDay? time) {
-  return time != null ? time.format(context) : '';
-}
-
-/// Web 上下載 Excel（Blob + anchor 觸發）
 void _downloadOnWeb(String filename, Uint8List data) {
   final blob = html.Blob([data]);
   final url = html.Url.createObjectUrlFromBlob(blob);
@@ -89,21 +53,12 @@ void _downloadOnWeb(String filename, Uint8List data) {
   html.Url.revokeObjectUrl(url);
 }
 
-/// 非 Web：儲存至裝置或桌面平台
-Future<io.File> _saveToFile(String filename, Uint8List bytes) async {
-  io.Directory dir;
+String _formatDate(DateTime? date) {
+  return date != null
+      ? '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}'
+      : '';
+}
 
-  if (io.Platform.isAndroid) {
-    dir = io.Directory('/storage/emulated/0/Download');
-  } else if (io.Platform.isWindows) {
-    dir = io.Directory('${io.Platform.environment['USERPROFILE']}\\Downloads');
-  } else if (io.Platform.isMacOS) {
-    dir = io.Directory('${io.Platform.environment['HOME']}/Downloads');
-  } else {
-    dir = await getApplicationDocumentsDirectory(); // iOS fallback
-  }
-
-  final file = io.File('${dir.path}/$filename');
-  await file.create(recursive: true);
-  return file.writeAsBytes(bytes);
-}*/
+String _formatTime(BuildContext context, TimeOfDay? time) {
+  return time != null ? time.format(context) : '';
+}
