@@ -42,7 +42,9 @@ class MyApp extends StatelessWidget {
                   const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
       ),
-      home: const MyHomePage(title: 'Dear, Where Are We Going?'),
+      //home: const MyHomePage(title: 'Dear, Where Are We Going?'),
+      debugShowCheckedModeBanner: false,
+      home: SuggestedEventsPage(), // 👈 這裡要是你要的首頁
     );
   }
 }
