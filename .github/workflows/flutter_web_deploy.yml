@@ -3,24 +3,26 @@ name: Flutter Web Deploy
 on:
   push:
     branches:
-      - master  # 或你的預設分支名稱
+      - master
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Set up Flutter
+      - name: Install Flutter 3.22.1
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.1'
+          flutter-version: '3.22.1'  # ✅ Dart 3.6.2 對應版本
+          channel: 'stable'
 
-      - name: Flutter pub get
+      - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Flutter Web
+      - name: Build Flutter web
         run: flutter build web --release
 
       - name: Deploy to GitHub Pages
@@ -28,4 +30,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/web
-          publish_branch: gh-pages  # ← 這行非常重要！
+          publish_branch: gh-pages
