@@ -15,7 +15,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.10.5'  # 改成 3.3.2，符合 Dart SDK ^3.6.2
+          flutter-version: '3.27.4'  # 改成 3.3.2，符合 Dart SDK ^3.6.2
 
       - name: Flutter pub get
         run: flutter pub get
