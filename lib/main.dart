@@ -14,9 +14,13 @@ var logger = Logger();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Dropbox.init("MomWhereGo","cc9nx2wxjdbasro","8zui4wducs9de6q");
+  if (!kIsWeb) {
+    await Dropbox.init("MomWhereGo", "cc9nx2wxjdbasro", "8zui4wducs9de6q");
+  }
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     logger.i('✅ Firebase Initialized');
   } catch (e) {
     logger.e('❌ Firebase.initializeApp() error: $e');
@@ -47,7 +51,10 @@ class MyApp extends StatelessWidget {
       ),
       //home: const MyHomePage(title: 'Dear, Where Are We Going?'),
       debugShowCheckedModeBanner: false,
-      home: kIsWeb ? SuggestedEventsPage() : const MyHomePage(title: 'Dear, Where Are We Going?'), // 👈 這裡要是你要的首頁
+      home: kIsWeb
+          ? SuggestedEventsPage()
+          : const MyHomePage(
+              title: 'Dear, Where Are We Going?'), // 👈 這裡要是你要的首頁
     );
   }
 }
@@ -115,22 +122,23 @@ class _MyHomePageState extends State<MyHomePage> {
       body: kIsWeb
           ? SuggestedEventsPage() // 網頁只顯示建議活動頁
           : pages[_selectedIndex],
-      bottomNavigationBar: kIsWeb ? null :
-        BottomNavigationBar(
-          items: items,
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          selectedItemColor: Colors.deepPurple,
-          selectedIconTheme: const IconThemeData(size: 60),
-          unselectedIconTheme: const IconThemeData(size: 40),
-          selectedLabelStyle:
-              const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontSize: 16),
-        ),
+      bottomNavigationBar: kIsWeb
+          ? null
+          : BottomNavigationBar(
+              items: items,
+              currentIndex: _selectedIndex,
+              onTap: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              selectedItemColor: Colors.deepPurple,
+              selectedIconTheme: const IconThemeData(size: 60),
+              unselectedIconTheme: const IconThemeData(size: 40),
+              selectedLabelStyle:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              unselectedLabelStyle: const TextStyle(fontSize: 16),
+            ),
     );
   }
 }
