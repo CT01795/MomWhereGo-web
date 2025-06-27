@@ -2,21 +2,20 @@ name: Dropbox Sync
 
 on:
   schedule:
-    # 每天7-20點每2小時執行一次，可以調整 cron 表達式
-    - cron: '0 7-20/2 * * *'
-  workflow_dispatch: # 允許手動觸發
+    - cron: '0 7-20/2 * * *'  # 每天 7~20 點，每 2 小時執行一次
+  workflow_dispatch:
 
 jobs:
   sync_dropbox:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout gh-pages branch
+      - name: Checkout master branch with script
         uses: actions/checkout@v3
         with:
-          ref: gh-pages   # 👈 這裡改為 gh-pages 分支
+          ref: master  # 👈 改回 master 分支，取得 Python 腳本
 
-      - name: Setup Python 3
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
@@ -24,16 +23,20 @@ jobs:
       - name: Install dependencies
         run: pip install dropbox
 
-      - name: Sync Dropbox files
+      - name: Run Dropbox sync script
         env:
           DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
-        run: |
-          python .github/scripts/dropbox_sync.py
+        run: python .github/scripts/dropbox_sync.py
 
-      - name: Commit and push changes
+      - name: Checkout gh-pages branch
+        run: |
+          git fetch origin
+          git checkout -B gh-pages origin/gh-pages || git checkout -B gh-pages
+          
+      - name: Commit and push changes to gh-pages
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add .
-          git commit -m "Sync Dropbox files to gh-pages" || echo "No changes to commit"
-          git push origin gh-pages   # 👈 這裡改為 gh-pages 分支 
+          git add dropbox_files/
+          git commit -m "Sync Dropbox files to gh-pages" || echo "No changes"
+          git push origin gh-pages
