@@ -1,6 +1,6 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 Widget buildAutoSizeImage(String imageUrl) {
   return FutureBuilder<Size>(
@@ -48,4 +48,21 @@ Future<Size> getImageSize(String url) async {
     }),
   );
   return completer.future;
+}
+
+// 取得 GitHub 優先顯示的圖片 URL（若存在）
+Future<String?> getPreferredImageUrl(String dropboxUrl) async {
+  final filename = Uri.parse(dropboxUrl).pathSegments.last;
+  final githubUrl = 'https://ct01795.github.io/MomWhereGo-web/dropbox_files/$filename';
+
+  try {
+    final response = await http.head(Uri.parse(githubUrl));
+    if (response.statusCode == 200) {
+      return githubUrl; // GitHub 上的圖存在
+    }
+  } catch (_) {
+    // ignore error, fallback to dropbox
+  }
+
+  return null; // fallback to Dropbox 圖片
 }

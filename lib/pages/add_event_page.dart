@@ -277,7 +277,10 @@ class _AddEventPageState extends State<AddEventPage> {
       if (sharedLinkResult != null) {
         // Dropbox 分享連結會是 ?dl=0，換成直接可顯示的 raw 圖片連結 ?raw=1
         logger.i("最終圖片網址: ${sharedLinkResult.replaceFirst('dl=0', 'raw=1')}");
-        return sharedLinkResult.replaceFirst('dl=0', 'raw=1');
+        final githubUrl =
+            'https://ct01795.github.io/MomWhereGo-web/dropbox_files/$filename';
+        //return sharedLinkResult.replaceFirst('dl=0', 'raw=1');
+        return githubUrl;
       } else {
         return null;
       }
@@ -316,9 +319,7 @@ class _AddEventPageState extends State<AddEventPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (masterGraphUrl != null)
-          Image.network(masterGraphUrl!,
-              height: 300),
+        if (masterGraphUrl != null) Image.network(masterGraphUrl!, height: 300),
         ElevatedButton(
           onPressed: _isUploading
               ? null
@@ -353,7 +354,9 @@ class _AddEventPageState extends State<AddEventPage> {
                   ),
                 ],
               ),
-              SizedBox(height: 12,)
+              SizedBox(
+                height: 12,
+              )
             ],
           ),
         ElevatedButton.icon(
