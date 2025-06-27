@@ -1,7 +1,10 @@
-import 'dart:typed_data';
+// ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
+import 'dart:typed_data';
+
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
+
 import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/utils/utils.dart';
 
@@ -47,7 +50,7 @@ Future<void> exportEventsToExcel(BuildContext context, List<Event> events) async
 void _downloadOnWeb(String filename, Uint8List data) {
   final blob = html.Blob([data]);
   final url = html.Url.createObjectUrlFromBlob(blob);
-  final anchor = html.AnchorElement(href: url)
+  html.AnchorElement(href: url)
     ..setAttribute('download', filename)
     ..click();
   html.Url.revokeObjectUrl(url);

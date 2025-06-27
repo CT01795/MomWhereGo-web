@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/services/firestore_service.dart';
 import 'package:mom_where_go/services/preference_service.dart';
@@ -10,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dropbox_client/dropbox_client.dart';
 import 'package:http/http.dart' as http;
 
+var logger = Logger();
 final uuid = const Uuid();
 
 class AddEventPage extends StatefulWidget {
@@ -242,7 +244,7 @@ class _AddEventPageState extends State<AddEventPage> {
   Future<String?> _pickAndUploadImage(String filename) async {
     // 先確保 Dropbox 已授權
     String? accessToken = await Dropbox.getAccessToken();
-    print("accessToken : $accessToken");
+    logger.i("accessToken : $accessToken");
     if (accessToken == null) {
       try {
         await Dropbox.authorizePKCE(); // 觸發登入
@@ -274,7 +276,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
       if (sharedLinkResult != null) {
         // Dropbox 分享連結會是 ?dl=0，換成直接可顯示的 raw 圖片連結 ?raw=1
-        print("最終圖片網址: ${sharedLinkResult.replaceFirst('dl=0', 'raw=1')}");
+        logger.i("最終圖片網址: ${sharedLinkResult.replaceFirst('dl=0', 'raw=1')}");
         return sharedLinkResult.replaceFirst('dl=0', 'raw=1');
       } else {
         return null;
@@ -305,7 +307,7 @@ class _AddEventPageState extends State<AddEventPage> {
       final data = jsonDecode(response.body);
       return data['url']; // Dropbox 返回的分享連結
     } else {
-      print('Failed to create shared link: ${response.body}');
+      logger.i('Failed to create shared link: ${response.body}');
       return null;
     }
   }

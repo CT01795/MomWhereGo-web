@@ -43,8 +43,10 @@ Future<void> exportEventsToExcel(BuildContext context, List<Event> events) async
 
   try {
     final file = await _saveToFile(filename, excelBytes);
+    // ignore: use_build_context_synchronously
     showSnackBar(context, '✅ 匯出成功：${file.path}');
   } catch (e) {
+    // ignore: use_build_context_synchronously
     showSnackBar(context, '❌ 匯出失敗：$e');
   }
 }

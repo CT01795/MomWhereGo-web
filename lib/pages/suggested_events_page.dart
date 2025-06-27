@@ -6,7 +6,7 @@ import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/services/firestore_service.dart';
 import 'package:mom_where_go/services/preference_service.dart';
 import 'package:mom_where_go/ui/widgets/event_card.dart';
-import 'package:mom_where_go/ui/widgets/event_cardGraph.dart';
+import 'package:mom_where_go/ui/widgets/event_card_graph.dart';
 import 'package:mom_where_go/utils/export_util.dart';
 import 'package:mom_where_go/utils/utils.dart';
 
