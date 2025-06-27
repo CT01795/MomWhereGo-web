@@ -28,6 +28,12 @@ class _SuggestedEventsPageState extends State<SuggestedEventsPage> {
   final Set<String> removedEventIds = {};
   final PreferenceService _pref = PreferenceService(); // 加這行在 class 裡
 
+  // 搜尋相關狀態
+  String _searchKeywords = '';
+  DateTime? _startDate;
+  DateTime? _endDate;
+  final TextEditingController _searchController = TextEditingController();
+
   void _onCheckboxChanged(bool? value, Event event) async {
     await handleCheckboxChanged(
       context: context,
@@ -73,12 +79,150 @@ class _SuggestedEventsPageState extends State<SuggestedEventsPage> {
     );
   }
 
+  void _showSearchPanel() {
+    _searchController.text = _searchKeywords; // 同步文字控制器
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // 讓 BottomSheet 可推上鍵盤高度
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: '關鍵字搜尋(空白分隔)',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchKeywords.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              setState(() {
+                                _searchKeywords = '';
+                                _searchController.clear();
+                              });
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchKeywords = value.trim();
+                    });
+                  },
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.date_range),
+                        label: Text(_startDate == null
+                            ? '開始日期'
+                            : "${_startDate!.month.toString().padLeft(2, '0')}/${_startDate!.day.toString().padLeft(2, '0')}"),
+                        onPressed: () async {
+                          DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: _startDate ?? DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: _endDate ?? DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _startDate = picked;
+                              if (_endDate != null && _startDate!.isAfter(_endDate!)) {
+                                _endDate = null;
+                              }
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    if (_startDate != null)
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        tooltip: '清除開始日期',
+                        onPressed: () {
+                          setState(() {
+                            _startDate = null;
+                          });
+                        },
+                      ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.date_range),
+                        label: Text(_endDate == null
+                            ? '結束日期'
+                            : "${_endDate!.month.toString().padLeft(2, '0')}/${_endDate!.day.toString().padLeft(2, '0')}"),
+                        onPressed: () async {
+                          DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: _endDate ?? DateTime.now(),
+                            firstDate: _startDate ?? DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _endDate = picked;
+                              if (_startDate != null && _endDate!.isBefore(_startDate!)) {
+                                _startDate = null;
+                              }
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    if (_endDate != null)
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        tooltip: '清除結束日期',
+                        onPressed: () {
+                          setState(() {
+                            _endDate = null;
+                          });
+                        },
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('關閉搜尋'),
+                ),
+                const SizedBox(height: 4),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('建議活動'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search, size: 50),
+            tooltip: '搜尋',
+            onPressed: _showSearchPanel,
+          ),
           IconButton(
             icon: Icon(isGridView ?  Icons.view_agenda : Icons.view_list, size: 50),
             tooltip: '切換檢視模式',
@@ -147,8 +291,38 @@ class _SuggestedEventsPageState extends State<SuggestedEventsPage> {
 
           final events = snapshot.data!;
           // 過濾被刪除的活動
-          final filteredEvents =
-              events.where((e) => !removedEventIds.contains(e.id)).toList();
+          final filteredEvents = events.where((e) {
+              if (removedEventIds.contains(e.id)) return false;
+
+            // 多關鍵字過濾
+            final keywords = _searchKeywords
+                .toLowerCase()
+                .split(RegExp(r'\s+'))
+                .where((word) => word.isNotEmpty)
+                .toList();
+
+            bool matchesKeywords = false || _searchKeywords.replaceAll(" ","").isEmpty;
+            for (final word in keywords) {
+              if (e.name.toLowerCase().contains(word) || 
+                e.type.toLowerCase().contains(word) ||
+                e.city.toLowerCase().contains(word)) {
+                matchesKeywords = true;
+                break;
+              }
+            }
+
+            // 日期範圍過濾 (假設 event.startDate 是 DateTime)
+            bool matchesDate = true;
+            if (_startDate != null) {
+              if (e.startDate!.isBefore(_startDate!)) matchesDate = false;
+            }
+            if (_endDate != null && e.startDate != null) {
+              if (e.startDate!.isAfter(_endDate!)) matchesDate = false;
+            }
+
+            return matchesKeywords && matchesDate;
+          }).toList();
+
           if (isGridView) {
             return ListView.builder(
               itemCount: filteredEvents.length,
