@@ -18,6 +18,12 @@ allprojects {
         google()
         mavenCentral()
     }
+    configurations.all {
+        resolutionStrategy {
+            force 'com.fasterxml.jackson.core:jackson-core:2.14.2'
+            force 'ch.randelshofer:fastdoubleparser:0.7.0'
+        }
+    }
 }
 
 rootProject.buildDir = "../build"

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:mom_where_go/models/event.dart';
@@ -5,6 +6,9 @@ import 'package:mom_where_go/services/firestore_service.dart';
 import 'package:mom_where_go/services/preference_service.dart';
 import 'package:mom_where_go/utils/utils.dart';
 import 'package:uuid/uuid.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:dropbox_client/dropbox_client.dart';
+import 'package:http/http.dart' as http;
 
 final uuid = const Uuid();
 
@@ -27,6 +31,7 @@ class AddEventPage extends StatefulWidget {
 class _AddEventPageState extends State<AddEventPage> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
+  final ImagePicker _picker = ImagePicker();
 
   DateTime startDate = DateTime.now();
   DateTime? endDate;
@@ -41,11 +46,16 @@ class _AddEventPageState extends State<AddEventPage> {
   String unit = '';
   List<SubEventItem> subEvents = [];
 
+  String? masterGraphUrl;
+  List<SubGraph> subGraphs = [];
+  bool _isUploading = false;
+
   @override
   void initState() {
     super.initState();
     if (widget.existingEvent != null) {
       final e = widget.existingEvent!;
+      masterGraphUrl = e.masterGraphUrl!;
       startDate = e.startDate!;
       endDate = e.endDate;
       startTime = e.startTime!;
@@ -58,13 +68,16 @@ class _AddEventPageState extends State<AddEventPage> {
       fee = e.fee;
       unit = e.unit;
       subEvents = List.from(e.subEvents);
+      subGraphs = List.from(e.subGraphs);
     }
   }
 
   Future<void> _pickDate({required bool isStart, int? index}) async {
     final initial = isStart
-        ? (index == null ? startDate : subEvents[index].startDate) ?? DateTime.now()
-        : (index == null ? endDate : subEvents[index].endDate) ?? DateTime.now();
+        ? (index == null ? startDate : subEvents[index].startDate) ??
+            DateTime.now()
+        : (index == null ? endDate : subEvents[index].endDate) ??
+            DateTime.now();
 
     final picked = await showDatePicker(
       context: context,
@@ -78,7 +91,9 @@ class _AddEventPageState extends State<AddEventPage> {
         if (index == null) {
           isStart ? startDate = picked : endDate = picked;
         } else {
-          isStart ? subEvents[index].startDate = picked : subEvents[index].endDate = picked;
+          isStart
+              ? subEvents[index].startDate = picked
+              : subEvents[index].endDate = picked;
         }
       });
     }
@@ -86,8 +101,10 @@ class _AddEventPageState extends State<AddEventPage> {
 
   Future<void> _pickTime({required bool isStart, int? index}) async {
     final initial = isStart
-        ? (index == null ? startTime : subEvents[index].startTime) ?? TimeOfDay.now()
-        : (index == null ? endTime : subEvents[index].endTime) ?? TimeOfDay.now();
+        ? (index == null ? startTime : subEvents[index].startTime) ??
+            TimeOfDay.now()
+        : (index == null ? endTime : subEvents[index].endTime) ??
+            TimeOfDay.now();
 
     final picked = await showTimePicker(context: context, initialTime: initial);
 
@@ -96,7 +113,9 @@ class _AddEventPageState extends State<AddEventPage> {
         if (index == null) {
           isStart ? startTime = picked : endTime = picked;
         } else {
-          isStart ? subEvents[index].startTime = picked : subEvents[index].endTime = picked;
+          isStart
+              ? subEvents[index].startTime = picked
+              : subEvents[index].endTime = picked;
         }
       });
     }
@@ -112,16 +131,24 @@ class _AddEventPageState extends State<AddEventPage> {
       children: [
         Row(
           children: [
-            Expanded(child: _buildDateTile(dStart, () => _pickDate(isStart: true, index: index), "S")),
+            Expanded(
+                child: _buildDateTile(
+                    dStart, () => _pickDate(isStart: true, index: index), "S")),
             const Text(' ~ '),
-            Expanded(child: _buildDateTile(dEnd, () => _pickDate(isStart: false, index: index), "E")),
+            Expanded(
+                child: _buildDateTile(
+                    dEnd, () => _pickDate(isStart: false, index: index), "E")),
           ],
         ),
         Row(
           children: [
-            Expanded(child: _buildTimeTile(tStart, () => _pickTime(isStart: true, index: index), "S")),
+            Expanded(
+                child: _buildTimeTile(
+                    tStart, () => _pickTime(isStart: true, index: index), "S")),
             const Text(' ~ '),
-            Expanded(child: _buildTimeTile(tEnd, () => _pickTime(isStart: false, index: index), "E")),
+            Expanded(
+                child: _buildTimeTile(
+                    tEnd, () => _pickTime(isStart: false, index: index), "E")),
           ],
         ),
       ],
@@ -176,12 +203,29 @@ class _AddEventPageState extends State<AddEventPage> {
         child: Column(
           children: [
             _buildDateTimeRow(index: index),
-            _buildTextField(label: '地點', initialValue: d.location, onChanged: (v) => d.location = v),
-            _buildTextField(label: '名稱', initialValue: d.name, onChanged: (v) => d.name = v),
-            _buildTextField(label: '關鍵字', initialValue: d.type, onChanged: (v) => d.type = v),
-            _buildTextField(label: '描述', initialValue: d.description, onChanged: (v) => d.description = v, maxLines: 2),
-            _buildTextField(label: '費用', initialValue: d.fee, onChanged: (v) => d.fee = v),
-            _buildTextField(label: '相關單位', initialValue: d.unit, onChanged: (v) => d.unit = v),
+            _buildTextField(
+                label: '地點',
+                initialValue: d.location,
+                onChanged: (v) => d.location = v),
+            _buildTextField(
+                label: '名稱',
+                initialValue: d.name,
+                onChanged: (v) => d.name = v),
+            _buildTextField(
+                label: '關鍵字',
+                initialValue: d.type,
+                onChanged: (v) => d.type = v),
+            _buildTextField(
+                label: '描述',
+                initialValue: d.description,
+                onChanged: (v) => d.description = v,
+                maxLines: 2),
+            _buildTextField(
+                label: '費用', initialValue: d.fee, onChanged: (v) => d.fee = v),
+            _buildTextField(
+                label: '相關單位',
+                initialValue: d.unit,
+                onChanged: (v) => d.unit = v),
             Align(
               alignment: Alignment.centerRight,
               child: IconButton(
@@ -195,11 +239,143 @@ class _AddEventPageState extends State<AddEventPage> {
     );
   }
 
+  Future<String?> _pickAndUploadImage(String filename) async {
+    // 先確保 Dropbox 已授權
+    String? accessToken = await Dropbox.getAccessToken();
+    print("accessToken : $accessToken");
+    if (accessToken == null) {
+      try {
+        await Dropbox.authorizePKCE(); // 觸發登入
+        accessToken = await Dropbox.getAccessToken();
+        if (accessToken == null) return null;
+      } catch (e) {
+        throw Exception("Dropbox 授權失敗: $e");
+        //return null;
+      }
+    }
+
+    final XFile? img = await _picker.pickImage(source: ImageSource.gallery);
+    if (img == null) return null;
+
+    setState(() => _isUploading = true);
+
+    try {
+      final dropboxPath = '/MomWhereGo/$filename';
+      final uploadResult = await Dropbox.upload(img.path, dropboxPath);
+
+      if (uploadResult == null) {
+        throw Exception('Dropbox 上傳失敗');
+      }
+
+      // 取得分享連結
+      final sharedLinkResult = await createSharedLink(dropboxPath, accessToken);
+
+      setState(() => _isUploading = false);
+
+      if (sharedLinkResult != null) {
+        // Dropbox 分享連結會是 ?dl=0，換成直接可顯示的 raw 圖片連結 ?raw=1
+        print("最終圖片網址: ${sharedLinkResult.replaceFirst('dl=0', 'raw=1')}");
+        return sharedLinkResult.replaceFirst('dl=0', 'raw=1');
+      } else {
+        return null;
+      }
+    } catch (e) {
+      setState(() => _isUploading = false);
+      throw Exception('Dropbox 上傳錯誤: $e');
+      //return null;
+    }
+  }
+
+  Future<String?> createSharedLink(String path, String accessToken) async {
+    final url = Uri.parse(
+        'https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings');
+    final headers = {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    };
+    final body = jsonEncode({
+      'path': path,
+      'settings': {
+        'requested_visibility': 'public',
+      },
+    });
+
+    final response = await http.post(url, headers: headers, body: body);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['url']; // Dropbox 返回的分享連結
+    } else {
+      print('Failed to create shared link: ${response.body}');
+      return null;
+    }
+  }
+
+  Widget _buildMasterImagePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (masterGraphUrl != null)
+          Image.network(masterGraphUrl!,
+              height: 300),
+        ElevatedButton(
+          onPressed: _isUploading
+              ? null
+              : () async {
+                  final url = await _pickAndUploadImage('${uuid.v4()}.jpg');
+                  if (url != null) setState(() => masterGraphUrl = url);
+                },
+          child: Text(masterGraphUrl == null ? '挑選主圖' : '更換主圖'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubGraphPicker() {
+    return Column(
+      children: [
+        for (int i = 0; i < subGraphs.length; i++)
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Image.network(
+                    subGraphs[i].url,
+                    height: 300,
+                    fit: BoxFit.contain,
+                  ),
+                  Text('${i + 1}'),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () => setState(() => subGraphs.removeAt(i)),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12,)
+            ],
+          ),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.add, size: 50),
+          label: const Text('新增子圖'),
+          onPressed: _isUploading
+              ? null
+              : () async {
+                  final url = await _pickAndUploadImage('${uuid.v4()}.jpg');
+                  if (url != null) {
+                    setState(() => subGraphs.add(SubGraph(url: url)));
+                  }
+                },
+        ),
+      ],
+    );
+  }
+
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final event = Event(
       id: widget.existingEvent?.id ?? uuid.v4(),
+      masterGraphUrl: masterGraphUrl,
       startDate: startDate,
       endDate: endDate,
       startTime: startTime,
@@ -211,7 +387,10 @@ class _AddEventPageState extends State<AddEventPage> {
       description: description,
       fee: fee,
       unit: unit,
-      subEvents: subEvents.map((d) => d.id.isEmpty ? d.copyWith(id: uuid.v4()) : d).toList(),
+      subEvents: subEvents
+          .map((d) => d.id.isEmpty ? d.copyWith(id: uuid.v4()) : d)
+          .toList(),
+      subGraphs: subGraphs,
     );
 
     if ((Platform.isAndroid || Platform.isIOS) && widget.saveToFirebase) {
@@ -255,21 +434,42 @@ class _AddEventPageState extends State<AddEventPage> {
             padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
             children: [
               _buildDateTimeRow(),
-              _buildTextField(label: '縣市', initialValue: city, onChanged: (v) => city = v),
-              _buildTextField(label: '地點', initialValue: location, onChanged: (v) => location = v),
-              _buildTextField(label: '名稱', initialValue: name, onChanged: (v) => name = v),
-              _buildTextField(label: '關鍵字', initialValue: type, onChanged: (v) => type = v),
-              _buildTextField(label: '描述', initialValue: description, onChanged: (v) => description = v, maxLines: 2),
-              _buildTextField(label: '費用', initialValue: fee, onChanged: (v) => fee = v),
-              _buildTextField(label: '相關單位', initialValue: unit, onChanged: (v) => unit = v),
+              _buildTextField(
+                  label: '縣市', initialValue: city, onChanged: (v) => city = v),
+              _buildTextField(
+                  label: '地點',
+                  initialValue: location,
+                  onChanged: (v) => location = v),
+              _buildTextField(
+                  label: '名稱', initialValue: name, onChanged: (v) => name = v),
+              _buildTextField(
+                  label: '關鍵字', initialValue: type, onChanged: (v) => type = v),
+              _buildTextField(
+                  label: '描述',
+                  initialValue: description,
+                  onChanged: (v) => description = v,
+                  maxLines: 2),
+              _buildTextField(
+                  label: '費用', initialValue: fee, onChanged: (v) => fee = v),
+              _buildTextField(
+                  label: '相關單位',
+                  initialValue: unit,
+                  onChanged: (v) => unit = v),
               const SizedBox(height: 8),
+              _buildMasterImagePicker(),
+              const SizedBox(height: 8),
+              _buildSubGraphPicker(),
+              const Divider(),
               const Text('細項活動'),
               ...List.generate(subEvents.length, _buildSubEventCard),
               const SizedBox(height: 4),
               ElevatedButton.icon(
                 onPressed: () {
-                  setState(() => subEvents.add(SubEventItem(startDate: startDate, startTime: startTime, 
-                    city: city, location: location)));
+                  setState(() => subEvents.add(SubEventItem(
+                      startDate: startDate,
+                      startTime: startTime,
+                      city: city,
+                      location: location)));
                   Future.delayed(const Duration(milliseconds: 300), () {
                     if (_scrollController.hasClients) {
                       _scrollController.animateTo(
@@ -280,7 +480,7 @@ class _AddEventPageState extends State<AddEventPage> {
                     }
                   });
                 },
-                icon: const Icon(Icons.add, size:50),
+                icon: const Icon(Icons.add, size: 50),
                 label: const Text('新增細項'),
               ),
             ],
@@ -290,4 +490,3 @@ class _AddEventPageState extends State<AddEventPage> {
     );
   }
 }
-

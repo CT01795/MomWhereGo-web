@@ -6,6 +6,7 @@ final _uuid = const Uuid(); // 僅限這個檔案使用
 
 class Event {
   final String id;
+  String? masterGraphUrl; // 圖片 URL 而非 Image widget
   DateTime? startDate;
   DateTime? endDate;
   TimeOfDay? startTime;
@@ -18,9 +19,11 @@ class Event {
   String fee;
   String unit;
   List<SubEventItem> subEvents;
+  List<SubGraph> subGraphs;
 
   Event({
     String? id,
+    this.masterGraphUrl,
     this.startDate,
     this.endDate,
     this.startTime,
@@ -33,12 +36,15 @@ class Event {
     this.fee = '',
     this.unit = '',
     List<SubEventItem>? subEvents,
+    List<SubGraph>? subGraphs,
   })  : id = id ?? _uuid.v4(),
-        subEvents = subEvents ?? [];
+        subEvents = subEvents ?? [],
+        subGraphs = subGraphs ?? [];
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'masterGraphUrl': masterGraphUrl,
       'startDate': startDate?.toIso8601String(),
       'endDate': endDate?.toIso8601String(),
       'startTime': startTime?.formatTimeString(),
@@ -51,16 +57,17 @@ class Event {
       'fee': fee,
       'unit': unit,
       'subEvents': subEvents.map((e) => e.toJson()).toList(),
+      'subGraphs': subGraphs.map((e) => e.toJson()).toList(),
     };
   }
 
   factory Event.fromJson(Map<String, dynamic> json) {
     return Event(
       id: json['id'],
+      masterGraphUrl: json['masterGraphUrl'],
       startDate:
           json['startDate'] != null ? DateTime.parse(json['startDate']) : null,
-      endDate:
-          json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
+      endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
       startTime: (json['startTime'] as String?)?.parseToTimeOfDay(),
       endTime: (json['endTime'] as String?)?.parseToTimeOfDay(),
       city: json['city'] ?? '',
@@ -74,6 +81,10 @@ class Event {
               ?.map((e) => SubEventItem.fromJson(e))
               .toList() ??
           [],
+      subGraphs: (json['subGraphs'] as List<dynamic>?)
+                ?.map((e) => SubGraph.fromJson(e))
+                .toList() ??
+            [],
     );
   }
 }
@@ -159,8 +170,7 @@ class SubEventItem {
       id: json['id'],
       startDate:
           json['startDate'] != null ? DateTime.parse(json['startDate']) : null,
-      endDate:
-          json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
+      endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
       startTime: (json['startTime'] as String?)?.parseToTimeOfDay(),
       endTime: (json['endTime'] as String?)?.parseToTimeOfDay(),
       city: json['city'] ?? '',
@@ -172,4 +182,15 @@ class SubEventItem {
       unit: json['unit'] ?? '',
     );
   }
+}
+
+class SubGraph {
+  final String url;
+
+  SubGraph({required this.url});
+
+  factory SubGraph.fromJson(Map<String, dynamic> json) =>
+      SubGraph(url: json['url']);
+
+  Map<String, dynamic> toJson() => {'url': url};
 }

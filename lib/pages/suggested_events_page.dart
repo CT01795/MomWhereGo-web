@@ -6,6 +6,7 @@ import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/services/firestore_service.dart';
 import 'package:mom_where_go/services/preference_service.dart';
 import 'package:mom_where_go/ui/widgets/event_card.dart';
+import 'package:mom_where_go/ui/widgets/event_cardGraph.dart';
 import 'package:mom_where_go/utils/export_util.dart';
 import 'package:mom_where_go/utils/utils.dart';
 
@@ -20,7 +21,8 @@ class SuggestedEventsPage extends StatefulWidget {
 
 class _SuggestedEventsPageState extends State<SuggestedEventsPage> {
   final FirestoreService _service = FirestoreService();
-
+  bool isGridView = true; // 預設為 GridView 模式
+  
   // 儲存已勾選的活動 id
   final Set<String> selectedEventIds = {};
   final Set<String> removedEventIds = {};
@@ -77,6 +79,15 @@ class _SuggestedEventsPageState extends State<SuggestedEventsPage> {
       appBar: AppBar(
         title: const Text('建議活動'),
         actions: [
+          IconButton(
+            icon: Icon(isGridView ?  Icons.view_agenda : Icons.view_list, size: 50),
+            tooltip: '切換檢視模式',
+            onPressed: () {
+              setState(() {
+                isGridView = !isGridView;
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.download, size: 50),
             tooltip: '匯出 Excel',
@@ -138,27 +149,45 @@ class _SuggestedEventsPageState extends State<SuggestedEventsPage> {
           // 過濾被刪除的活動
           final filteredEvents =
               events.where((e) => !removedEventIds.contains(e.id)).toList();
-
-          return ListView.builder(
-            itemCount: filteredEvents.length,
-            itemBuilder: (context, index) {
-              final event = filteredEvents[index];
-              return EventCard(
-                event: event,
-                index: index,
-                onTap: !kIsWeb && (Platform.isAndroid || Platform.isIOS) ? () => _onEditEvent(event) : null,
-                onDelete: !kIsWeb && (Platform.isAndroid || Platform.isIOS) ? () => _removeEvent(event) : null,
-                  trailing: !kIsWeb && (Platform.isAndroid || Platform.isIOS)
-                    ? Transform.scale(
-                      scale: 1.5,
-                      child: Checkbox(
-                        value: selectedEventIds.contains(event.id),
-                        onChanged: (value) => _onCheckboxChanged(value, event),
-                      ),
-                    ): null,
-              );
-            },
-          );
+          if (isGridView) {
+            return ListView.builder(
+              itemCount: filteredEvents.length,
+              itemBuilder: (context, index) {
+                final event = filteredEvents[index];
+                return EventCardGraph(
+                  event: event,
+                  index: index,
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => EventImageDialog(event: event),
+                    );
+                  },
+                );
+              },
+            );
+          } else {
+            return ListView.builder(
+              itemCount: filteredEvents.length,
+              itemBuilder: (context, index) {
+                final event = filteredEvents[index];
+                return EventCard(
+                  event: event,
+                  index: index,
+                  onTap: !kIsWeb && (Platform.isAndroid || Platform.isIOS) ? () => _onEditEvent(event) : null,
+                  onDelete: !kIsWeb && (Platform.isAndroid || Platform.isIOS) ? () => _removeEvent(event) : null,
+                    trailing: !kIsWeb && (Platform.isAndroid || Platform.isIOS)
+                      ? Transform.scale(
+                        scale: 1.5,
+                        child: Checkbox(
+                          value: selectedEventIds.contains(event.id),
+                          onChanged: (value) => _onCheckboxChanged(value, event),
+                        ),
+                      ): null,
+                );
+              },
+            );
+          }
         },
       ),
       floatingActionButton: null,

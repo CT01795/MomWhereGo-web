@@ -2,16 +2,19 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+
 import 'package:mom_where_go/firebase_options.dart';
- 
+
 import 'pages/history_events_page.dart';
 import 'pages/planned_events_page.dart';
 import 'pages/suggested_events_page.dart';
+import 'package:dropbox_client/dropbox_client.dart';
 
 var logger = Logger();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Dropbox.init("MomWhereGo","cc9nx2wxjdbasro","8zui4wducs9de6q");
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
     logger.i('✅ Firebase Initialized');
