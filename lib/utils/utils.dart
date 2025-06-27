@@ -155,7 +155,7 @@ Future<void> handleRemoveEvent({
 
 /// 過濾掉已過期的活動（根據 endDate 或 startDate）
 List<Event> filterValidEvents(List<Event> events) {
-  final day = DateTime.now().add(Duration(days: -7));
+  final day = DateTime.now().add(Duration(days: -3));
   final dayDate = DateTime(day.year, day.month, day.day);
 
   return events.where((event) {

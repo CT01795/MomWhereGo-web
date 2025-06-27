@@ -104,10 +104,41 @@ class EventImageDialog extends StatelessWidget {
       return Dialog(
         insetPadding: const EdgeInsets.all(0),
         backgroundColor: Colors.white,
-        child: EventCard(
-          event: event,
-          index: 0,
-          onTap: () => Navigator.pop(context),
+        child: Stack(
+          children: [
+            // 可滾動內容
+            SingleChildScrollView(
+              child: EventCard(
+                event: event,
+                index: 0,
+                onTap: () => Navigator.pop(context),
+              ),
+            ),
+
+            // 右上角浮動的關閉按鈕（白底）
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.close, size: 30, color: Colors.black),
+                  tooltip: '關閉',
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -115,66 +146,91 @@ class EventImageDialog extends StatelessWidget {
     return Dialog(
       insetPadding: const EdgeInsets.all(0),
       backgroundColor: Colors.white,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (event.masterGraphUrl != null &&
-                event.masterGraphUrl!.isNotEmpty) 
-                ...[
-                  Padding(
-                    padding: const EdgeInsets.all(0),
-                    child: GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => FullScreenImageViewer(
-                            imageUrl: event.masterGraphUrl!,
-                          ),
-                        ),
-                      ),
-                      child: Image.network(
-                        event.masterGraphUrl!,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  const Divider(),
-                ],
-            if (event.subGraphs.isNotEmpty) 
-              ...event.subGraphs.map((subGraph) {
-                return Column(
-                  children: [
+      child: Stack(
+        children: [
+          // 可滾動內容
+          SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (event.masterGraphUrl != null && event.masterGraphUrl!.isNotEmpty)
+                  ...[
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      padding: const EdgeInsets.all(0),
                       child: GestureDetector(
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => FullScreenImageViewer(
-                              imageUrl: subGraph.url,
+                              imageUrl: event.masterGraphUrl!,
                             ),
                           ),
                         ),
                         child: Image.network(
-                          subGraph.url,
+                          event.masterGraphUrl!,
                           fit: BoxFit.contain,
                         ),
                       ),
                     ),
                     const Divider(),
                   ],
-                );
-              }),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('關閉'),
+                if (event.subGraphs.isNotEmpty)
+                  ...event.subGraphs.map((subGraph) {
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => FullScreenImageViewer(
+                                  imageUrl: subGraph.url,
+                                ),
+                              ),
+                            ),
+                            child: Image.network(
+                              subGraph.url,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        const Divider(),
+                      ],
+                    );
+                  }),
+                const SizedBox(height: 12),
+              ],
             ),
-          ],
-        ),
+          ),
+
+          // 右上角浮動的關閉按鈕（白底）
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.close, size: 30, color: Colors.black),
+                tooltip: '關閉',
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+        ],
       ),
     );
+
   }
 }
 
