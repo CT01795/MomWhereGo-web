@@ -57,7 +57,7 @@ class _AddEventPageState extends State<AddEventPage> {
     super.initState();
     if (widget.existingEvent != null) {
       final e = widget.existingEvent!;
-      masterGraphUrl = e.masterGraphUrl!;
+      masterGraphUrl = e.masterGraphUrl;
       startDate = e.startDate!;
       endDate = e.endDate;
       startTime = e.startTime!;

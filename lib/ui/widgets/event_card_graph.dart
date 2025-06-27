@@ -25,7 +25,7 @@ class EventCardGraph extends StatelessWidget {
     final cardColor =
         index % 2 == 0 ? Colors.grey.shade100 : Colors.grey.shade300;
 
-    if (event.masterGraphUrl != null && event.masterGraphUrl!.isNotEmpty) {
+    /*if (event.masterGraphUrl != null && event.masterGraphUrl!.isNotEmpty) {
       return GestureDetector(
         onTap: onTap,
         child: Column(
@@ -44,7 +44,7 @@ class EventCardGraph extends StatelessWidget {
           ],
         ),
       );
-    }
+    }*/
     return GestureDetector(
       onTap: onTap,
       child: Stack(
@@ -97,10 +97,10 @@ class EventImageDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasMaster = event.masterGraphUrl != null && event.masterGraphUrl!.isNotEmpty;
-    final hasSub = event.subGraphs.isNotEmpty;
+    //final hasSub = event.subGraphs.isNotEmpty;
 
     // ✅ 如果沒有圖片，回退顯示文字 EventCard
-    if (!hasMaster && !hasSub) {
+    if (!hasMaster) {
       return Dialog(
         insetPadding: const EdgeInsets.all(0),
         backgroundColor: Colors.white,
