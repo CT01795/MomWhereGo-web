@@ -38,15 +38,15 @@ class MyApp extends StatelessWidget {
       title: 'MomWhereGo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        scaffoldBackgroundColor: Colors.white, // 👈 加上這行
         useMaterial3: true,
-        iconTheme: const IconThemeData(size: 36),
+        iconTheme: const IconThemeData(size: 40),
         textTheme: ThemeData.light().textTheme.copyWith(
               bodyLarge: const TextStyle(fontSize: 24),
               bodyMedium: const TextStyle(fontSize: 24),
               titleLarge:
                   const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              labelLarge:
-                  const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              labelLarge: const TextStyle(fontSize: 24),
             ),
       ),
       //home: const MyHomePage(title: 'Dear, Where Are We Going?'),
@@ -133,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
               },
               selectedItemColor: Colors.deepPurple,
-              selectedIconTheme: const IconThemeData(size: 60),
+              selectedIconTheme: const IconThemeData(size: 50),
               unselectedIconTheme: const IconThemeData(size: 40),
               selectedLabelStyle:
                   const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

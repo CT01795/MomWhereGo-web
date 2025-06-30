@@ -15,7 +15,10 @@ Widget buildAutoSizeImage(String imageUrl) {
       if (!snapshot.hasData || snapshot.hasError) {
         return const SizedBox(
           height: 300,
-          child: Center(child: Icon(Icons.broken_image, size: 50)),
+          child: Center(
+              child: Icon(
+            Icons.broken_image,
+          )),
         );
       }
 
@@ -53,7 +56,8 @@ Future<Size> getImageSize(String url) async {
 // 取得 GitHub 優先顯示的圖片 URL（若存在）
 Future<String?> getPreferredImageUrl(String dropboxUrl) async {
   final filename = Uri.parse(dropboxUrl).pathSegments.last;
-  final githubUrl = 'https://ct01795.github.io/MomWhereGo-web/dropbox_files/$filename';
+  final githubUrl =
+      'https://ct01795.github.io/MomWhereGo-web/dropbox_files/$filename';
 
   try {
     final response = await http.head(Uri.parse(githubUrl));

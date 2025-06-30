@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/ui/widgets/event_card.dart';
-import 'package:mom_where_go/utils/graph_util.dart';
 import 'package:mom_where_go/utils/utils.dart';
 
 class EventCardGraph extends StatelessWidget {
@@ -22,8 +21,8 @@ class EventCardGraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor =
-        index % 2 == 0 ? Colors.grey.shade100 : Colors.grey.shade300;
+    final cardColor = Colors.grey.shade100;
+    //index % 2 == 0 ? Colors.grey.shade100 : Colors.grey.shade300;
 
     /*if (event.masterGraphUrl != null && event.masterGraphUrl!.isNotEmpty) {
       return GestureDetector(
@@ -64,17 +63,18 @@ class EventCardGraph extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          '${formatEventDateTime(event, "S")} - ${formatEventDateTime(event, "E")}',
+                          event.name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.deepPurple),
                         ),
                       ),
                       if (trailing != null) trailing!,
                     ],
                   ),
                   Text(
-                    event.name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                  ),
+                      '${formatEventDateTime(event, "S")} - ${formatEventDateTime(event, "E")}',
+                      style: const TextStyle(fontSize: 20)),
                   if (event.city.isNotEmpty || event.location.isNotEmpty)
                     Text(
                       '${event.city}．${event.location}',
@@ -96,14 +96,15 @@ class EventImageDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasMaster = event.masterGraphUrl != null && event.masterGraphUrl!.isNotEmpty;
+    final hasMaster =
+        event.masterGraphUrl != null && event.masterGraphUrl!.isNotEmpty;
     //final hasSub = event.subGraphs.isNotEmpty;
 
     // ✅ 如果沒有圖片，回退顯示文字 EventCard
     if (!hasMaster) {
       return Dialog(
-        insetPadding: const EdgeInsets.all(0),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent, // ✅ 將 Dialog 本體透明
+        insetPadding: const EdgeInsets.symmetric(horizontal: 6), // ✅ 整體左右間距
         child: Stack(
           children: [
             // 可滾動內容
@@ -132,7 +133,7 @@ class EventImageDialog extends StatelessWidget {
                   ],
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.close, size: 30, color: Colors.black),
+                  icon: const Icon(Icons.close, color: Colors.black),
                   tooltip: '關閉',
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -153,27 +154,27 @@ class EventImageDialog extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (event.masterGraphUrl != null && event.masterGraphUrl!.isNotEmpty)
-                  ...[
-                    Padding(
-                      padding: const EdgeInsets.all(0),
-                      child: GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => FullScreenImageViewer(
-                              imageUrl: event.masterGraphUrl!,
-                            ),
+                if (event.masterGraphUrl != null &&
+                    event.masterGraphUrl!.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.all(0),
+                    child: GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => FullScreenImageViewer(
+                            imageUrl: event.masterGraphUrl!,
                           ),
                         ),
-                        child: Image.network(
-                          event.masterGraphUrl!,
-                          fit: BoxFit.contain,
-                        ),
+                      ),
+                      child: Image.network(
+                        event.masterGraphUrl!,
+                        fit: BoxFit.contain,
                       ),
                     ),
-                    const Divider(),
-                  ],
+                  ),
+                  const Divider(),
+                ],
                 if (event.subGraphs.isNotEmpty)
                   ...event.subGraphs.map((subGraph) {
                     return Column(
@@ -221,7 +222,7 @@ class EventImageDialog extends StatelessWidget {
                 ],
               ),
               child: IconButton(
-                icon: const Icon(Icons.close, size: 30, color: Colors.black),
+                icon: const Icon(Icons.close, color: Colors.black),
                 tooltip: '關閉',
                 onPressed: () => Navigator.pop(context),
               ),
@@ -230,7 +231,6 @@ class EventImageDialog extends StatelessWidget {
         ],
       ),
     );
-
   }
 }
 

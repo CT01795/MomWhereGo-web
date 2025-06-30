@@ -1,5 +1,5 @@
-import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/services/preference_service.dart';
 
@@ -57,13 +57,13 @@ Future<void> handleCheckboxChanged({
   required Event event,
   required Set<String> selectedEventIds,
   required void Function(void Function()) setState,
-  required String prefKey,
+  required String isPlanned,
   required String addedMessage,
   required String duplicateMessage,
   required String confirmTitle,
 }) async {
   if (value == true) {
-    final existingEvents = await pref.getPrefEvents(prefKey);
+    final existingEvents = await pref.getPrefEvents(isPlanned);
 
     final isAlreadyAdded = existingEvents.any((e) => e.id == event.id);
 
@@ -99,7 +99,7 @@ Future<void> handleCheckboxChanged({
       selectedEventIds.add(event.id);
     });
 
-    await pref.savePrefEvent(prefKey, event);
+    await pref.savePrefEvent(isPlanned, event);
 
     // ignore: use_build_context_synchronously
     showSnackBar(context, addedMessage);
@@ -155,7 +155,7 @@ Future<void> handleRemoveEvent({
 
 /// 過濾掉已過期的活動（根據 endDate 或 startDate）
 List<Event> filterValidEvents(List<Event> events) {
-  final day = DateTime.now().add(Duration(days: -3));
+  final day = DateTime.now().add(Duration(days: -1));
   final dayDate = DateTime(day.year, day.month, day.day);
 
   return events.where((event) {

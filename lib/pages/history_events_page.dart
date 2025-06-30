@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/services/preference_service.dart';
-import 'package:mom_where_go/ui/widgets/event_card.dart';
-import 'package:mom_where_go/utils/utils.dart';
-
-import 'add_event_page.dart';
+import 'package:mom_where_go/utils/app_bar_action_util.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class HistoryEventsPage extends StatefulWidget {
   const HistoryEventsPage({super.key});
@@ -14,92 +13,96 @@ class HistoryEventsPage extends StatefulWidget {
 }
 
 class _HistoryEventsPageState extends State<HistoryEventsPage> {
-  final PreferenceService _pref = PreferenceService();
+  late AppBarActionsHandler handler;
+  bool isGridView = false; // 預設為 GridView 模式
+  bool _showSearchPanel = false;
+  String isPlanned = "History";
 
-  List<Event> _events = []; // ← 儲存讀進來的資料
+  // 儲存已勾選的活動 id
+  final Set<String> selectedEventIds = {};
+  final Set<String> removedEventIds = {};
+  final PreferenceService _pref = PreferenceService(); // 加這行在 class 裡
 
-  @override
-  void initState() {
-    super.initState();
-    _loadEvents();
-  }
-
-  Future<void> _loadEvents() async {
-    final events = await _pref.getPrefEvents("History"); 
-    setState(() => _events = events);
-  }
-
-  void _onEditEvent(Event event) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddEventPage(
-          saveToFirebase: false,
-          saveToPlannedEvent: false,
-          existingEvent: event,
-        ),
-      ),
-    );
-    await _loadEvents(); // ⬅️ 編輯回來後重新讀資料
-  }
-
-  Future<void> _removeEvent(Event event) async {
-    await handleRemoveEvent(
-      context: context,
-      event: event,
-      dialogTitle: '歷史活動',
-      onDelete: () async {
-        _events.removeWhere((e) => e.id == event.id);
-        await _pref.deletePrefEvent("History", event);
-      },
-      onSuccessSetState: () {
-        setState(() {});
-      },
-    );
-  }
+  // 搜尋相關狀態
+  String _searchKeywords = '';
+  DateTime? _startDate;
+  DateTime? _endDate;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    handler = AppBarActionsHandler(
+      firestoreService: null,
+      pref: _pref,
+      context: context,
+      refreshCallback: () => setState(() => {}), // 新增後重新載入,
+      setState: setState,
+      isGridViewGetter: () => isGridView,
+      showSearchPanelGetter: () => _showSearchPanel,
+      onToggleGridView: (val) => isGridView = val,
+      onToggleShowSearch: (val) => _showSearchPanel = val,
+    );
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('歷史活動'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, size: 50),
-            tooltip: '新增活動',
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const AddEventPage(saveToFirebase: false, saveToPlannedEvent: false,),
-                ),
-              );
-              await _loadEvents(); // 新增後重新載入
-            },
+        appBar: buildWhiteAppBar(
+          isPlanned,
+          '歷史活動',
+          enableSearchAndExport: true, // ✅ 僅此頁啟用
+          isGridView: isGridView,
+          handler: handler,
+          setState: setState,  // 必須傳入
+          onAdd: () => handler.onAddEvent(context, isPlanned),
+        ),
+        body: Column(
+        children: [
+          if (_showSearchPanel)
+            buildSearchPanel(
+              searchController: _searchController,
+              searchKeywords: _searchKeywords,
+              startDate: _startDate,
+              endDate: _endDate,
+              onSearchKeywordsChanged: (value) => _searchKeywords = value,
+              onStartDateChanged: (date) => _startDate = date,
+              onEndDateChanged: (date) => _endDate = date,
+              setState: setState,
+              context: context,
+            ),
+          Expanded(
+            child: FutureBuilder<List<Event>>(
+              future: _pref.getPrefEvents(isPlanned),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('目前沒有歷史活動'));
+                }
+
+                final filteredEvents = filterEvents(
+                  events: snapshot.data!,
+                  removedEventIds: removedEventIds,
+                  searchKeywords: _searchKeywords,
+                  startDate: _startDate,
+                  endDate: _endDate,
+                );
+
+                return EventList(
+                  events: filteredEvents,
+                  isGridView: isGridView,
+                  selectedEventIds: selectedEventIds,
+                  removedEventIds: removedEventIds,
+                  isEditable: !kIsWeb && (Platform.isAndroid || Platform.isIOS),
+                  isPlanned: isPlanned,
+                  pref: _pref,
+                  service: null,
+                  setState: setState,
+                );
+              },
+            ),
           ),
         ],
       ),
-      body: _events.isEmpty
-          ? const Center(child: Text('目前沒有歷史活動'))
-          : ListView.builder(
-              itemCount: _events.length,
-              itemBuilder: (context, index) {
-                final event = _events[index];
-                return _buildEventCard(event, index);
-              },
-            ),
-      floatingActionButton: null
-    );
-  }
-
-  Widget _buildEventCard(Event event, int index) {
-    return EventCard(
-      event: event,
-      index: index,
-      onTap: () => _onEditEvent(event),
-      onDelete: () => _removeEvent(event),
-      trailing: null,  // 歷史活動沒有 checkbox，所以這裡不傳任何 Widget
+      floatingActionButton: null,
     );
   }
 }

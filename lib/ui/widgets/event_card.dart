@@ -20,8 +20,8 @@ class EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor =
-        index % 2 == 0 ? Colors.grey.shade100 : Colors.grey.shade300;
+    final cardColor = Colors.grey.shade100;
+    //index % 2 == 0 ? Colors.grey.shade100 : Colors.grey.shade300;
 
     return GestureDetector(
       onTap: onTap,
@@ -29,7 +29,8 @@ class EventCard extends StatelessWidget {
         children: [
           Card(
             margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             color: cardColor,
             elevation: 4,
             child: Padding(
@@ -41,22 +42,24 @@ class EventCard extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          '${formatEventDateTime(event, "S")} - ${formatEventDateTime(event, "E")}',
+                          event.name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.deepPurple),
                         ),
                       ),
                       if (trailing != null) trailing!,
                     ],
                   ),
                   Text(
-                    event.name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                    '${formatEventDateTime(event, "S")} - ${formatEventDateTime(event, "E")}',
+                    style: const TextStyle(fontSize: 20),
                   ),
                   if (event.fee.isNotEmpty || event.type.isNotEmpty)
                     Text(
                       '${event.fee == '' ? '' : '${event.fee}．'}${event.type}',
-                      style:
-                          const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 20),
                     ),
                   if (event.city.isNotEmpty || event.location.isNotEmpty)
                     Text(
@@ -65,41 +68,44 @@ class EventCard extends StatelessWidget {
                     ),
                   ...event.subEvents.asMap().entries.map(
                     (entry) {
-                      final subIndex = entry.key;
+                      //final subIndex = entry.key;
                       final sub = entry.value;
-                      final bgColor = subIndex % 2 == 0
-                          ? Colors.deepPurple.shade100
-                          : Colors.deepPurple.shade50;
+                      //final bgColor = Colors.grey.shade300;
+                      //subIndex % 2 == 0 ? Colors.deepPurple.shade100 : Colors.deepPurple.shade50;
 
                       return SizedBox(
                         width: double.infinity,
                         child: Card(
-                          color: bgColor,
-                          margin:
-                              const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                          color: Colors.transparent, // ✅ 背景透明
+                          elevation: 0, // ✅ 無陰影
+                          margin: const EdgeInsets.only(
+                              left: 20, right: 0, top: 6, bottom: 0),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8)),
                           child: Padding(
-                            padding: const EdgeInsets.all(10),
+                            padding: const EdgeInsets.all(4),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                    '${formatEventDateTime(sub, "S")} - ${formatEventDateTime(sub, "E")}'),
-                                Text(
-                                  sub.name,
+                                  "👉 ${sub.name}",
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.deepPurple),
+                                      color: Colors.black54),
                                 ),
+                                Text(
+                                    '${formatEventDateTime(sub, "S")} - ${formatEventDateTime(sub, "E")}',
+                                    style: const TextStyle(fontSize: 20)),
                                 if (sub.fee.isNotEmpty || sub.type.isNotEmpty)
                                   Text(
                                     '${sub.fee == '' ? '' : '${sub.fee}．'}${sub.type}',
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 20),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20),
                                   ),
-                                if (sub.city.isNotEmpty ||
-                                    sub.location.isNotEmpty)
+                                if ((sub.city.isNotEmpty ||
+                                        sub.location.isNotEmpty) &&
+                                    event.location != sub.location)
                                   Text(
                                     '${sub.city}．${sub.location}',
                                     style: const TextStyle(fontSize: 20),

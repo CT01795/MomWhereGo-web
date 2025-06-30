@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:dropbox_client/dropbox_client.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/services/firestore_service.dart';
 import 'package:mom_where_go/services/preference_service.dart';
 import 'package:mom_where_go/utils/utils.dart';
 import 'package:uuid/uuid.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:dropbox_client/dropbox_client.dart';
-import 'package:http/http.dart' as http;
 
 var logger = Logger();
 final uuid = const Uuid();
@@ -231,7 +232,8 @@ class _AddEventPageState extends State<AddEventPage> {
             Align(
               alignment: Alignment.centerRight,
               child: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.pinkAccent),
+                icon: const Icon(Icons.delete,
+                    size: 40, color: Colors.pinkAccent),
                 onPressed: () => setState(() => subEvents.removeAt(index)),
               ),
             ),
@@ -360,7 +362,9 @@ class _AddEventPageState extends State<AddEventPage> {
             ],
           ),
         ElevatedButton.icon(
-          icon: const Icon(Icons.add, size: 50),
+          icon: const Icon(
+            Icons.add, size: 40
+          ),
           label: const Text('新增子圖'),
           onPressed: _isUploading
               ? null
@@ -485,7 +489,9 @@ class _AddEventPageState extends State<AddEventPage> {
                     }
                   });
                 },
-                icon: const Icon(Icons.add, size: 50),
+                icon: const Icon(
+                  Icons.add, size: 40
+                ),
                 label: const Text('新增細項'),
               ),
             ],

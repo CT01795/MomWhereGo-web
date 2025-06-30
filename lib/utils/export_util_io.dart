@@ -6,7 +6,7 @@ import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/utils/utils.dart';
 import 'package:path_provider/path_provider.dart';
 
-Future<void> exportEventsToExcel(BuildContext context, List<Event> events) async {
+Future<void> exportEventsToExcel(BuildContext context, List<Event> events, String isPlanned) async {
   final excel = Excel.createExcel();
   final sheet = excel['Sheet1'];
 
@@ -39,7 +39,7 @@ Future<void> exportEventsToExcel(BuildContext context, List<Event> events) async
   }
 
   final excelBytes = Uint8List.fromList(excel.encode()!);
-  final filename = 'exported_events_${DateTime.now().millisecondsSinceEpoch}.xlsx';
+  final filename = '${isPlanned}_events_${DateTime.now().millisecondsSinceEpoch}.xlsx';
 
   try {
     final file = await _saveToFile(filename, excelBytes);
