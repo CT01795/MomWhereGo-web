@@ -417,7 +417,7 @@ class _AddEventPageState extends State<AddEventPage> {
     }
 
     // ignore: use_build_context_synchronously
-    Navigator.pop(context);
+    Navigator.pop(context, widget.existingEvent == null ? event : null);
   }
 
   @override

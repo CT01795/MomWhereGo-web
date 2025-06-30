@@ -129,18 +129,19 @@ class AppBarActionsHandler {
     });
   }
 
-  void onAddEvent(BuildContext context, String isPlanned) {
-    Navigator.push(
+  Future<Event?> onAddEvent(BuildContext context, String isPlanned) {
+    return Navigator.push<Event?>(
       context,
       MaterialPageRoute(
         builder: (context) => AddEventPage(
-          saveToFirebase: isPlanned == "Suggested" ? true : false,
-          saveToPlannedEvent: isPlanned == "Suggested"
-              ? false
-              : (isPlanned == "Planned" ? true : false),
+          saveToFirebase: isPlanned == "Suggested",
+          saveToPlannedEvent: isPlanned == "Planned",
         ),
       ),
-    ).then((_) => refreshCallback());
+    ).then((newEvent) {
+      refreshCallback();  // 先刷新頁面
+      return newEvent;     // 回傳新增的事件 (可能是 null)
+    });
   }
 }
 
@@ -380,6 +381,7 @@ class EventList extends StatelessWidget {
   final PreferenceService? pref;
   final FirestoreService? service;
   final void Function(void Function()) setState;
+  final ScrollController scrollController;
 
   const EventList({
     super.key,
@@ -392,12 +394,15 @@ class EventList extends StatelessWidget {
     this.pref,
     this.service,
     required this.setState,
+    required this.scrollController,
   });
 
   @override
   Widget build(BuildContext context) {
     if (isGridView) {
       return ListView.builder(
+        key: PageStorageKey('event_list_$isPlanned'), // ✅ 加這行
+        controller: scrollController,
         itemCount: events.length,
         itemBuilder: (context, index) {
           final event = events[index];
@@ -417,6 +422,7 @@ class EventList extends StatelessWidget {
       );
     } else {
       return ListView.builder(
+        key: PageStorageKey('event_list_$isPlanned'), // ✅ 加這行
         itemCount: events.length,
         itemBuilder: (context, index) {
           final event = events[index];
@@ -444,30 +450,67 @@ class EventList extends StatelessWidget {
                     )
                 : null,
             trailing: isEditable && isPlanned != "History"
-                ? Transform.scale(
-                    scale: 1.5,
-                    child: Checkbox(
-                      value: selectedEventIds.contains(event.id),
-                      onChanged: (value) async => await onCheckboxChanged(
-                        context: context,
-                        pref: pref!,
-                        value: value,
-                        event: event,
-                        selectedEventIds: selectedEventIds,
-                        setState: setState,
-                        isPlanned: isPlanned == "Planned" ? "History" : "Planned",
-                        addedMessage: isPlanned == "Planned" ? '已加入歷史活動' : '已加入預計活動',
-                        duplicateMessage: isPlanned == "Planned"
-                            ? '此活動已在歷史活動中'
-                            : '此活動已在預計活動中',
-                        confirmTitle: isPlanned == "Planned" ? '歷史活動' : '預計活動',
+              ? StatefulBuilder(
+                  builder: (context, localSetState) {
+                    final isChecked = selectedEventIds.contains(event.id);
+                    return Transform.scale(
+                      scale: 1.5,
+                      child: Checkbox(
+                        value: isChecked,
+                        onChanged: (value) async {
+                          await onCheckboxChanged(
+                            context: context,
+                            pref: pref!,
+                            value: value,
+                            event: event,
+                            selectedEventIds: selectedEventIds,
+                            setState: (fn) {
+                              fn();
+                              // ✅ 單獨更新 checkbox 狀態
+                              localSetState(() {});
+                            },
+                            isPlanned: isPlanned == "Planned" ? "History" : "Planned",
+                            addedMessage: isPlanned == "Planned"
+                                ? '已加入歷史活動'
+                                : '已加入預計活動',
+                            duplicateMessage: isPlanned == "Planned"
+                                ? '此活動已在歷史活動中'
+                                : '此活動已在預計活動中',
+                            confirmTitle: isPlanned == "Planned"
+                                ? '歷史活動'
+                                : '預計活動',
+                          );
+                        },
                       ),
-                    ),
-                  )
-                : null,
+                    );
+                  },
+                )
+              : null,
           );
         },
       );
     }
   }
+}
+
+void scrollToEventById({
+  required List<Event> events,
+  required ScrollController scrollController,
+  required String eventId,
+  double itemHeight = 120.0, // 預設高度，可調
+}) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final index = events.indexWhere((e) => e.id == eventId);
+    if (index != -1) {
+      final position = index * itemHeight;
+
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          position,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    }
+  });
 }

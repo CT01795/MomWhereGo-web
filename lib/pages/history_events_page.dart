@@ -14,7 +14,7 @@ class HistoryEventsPage extends StatefulWidget {
 
 class _HistoryEventsPageState extends State<HistoryEventsPage> {
   late AppBarActionsHandler handler;
-  bool isGridView = false; // 預設為 GridView 模式
+  bool isGridView = false; 
   bool _showSearchPanel = false;
   String isPlanned = "History";
 
@@ -29,6 +29,27 @@ class _HistoryEventsPageState extends State<HistoryEventsPage> {
   DateTime? _endDate;
   final TextEditingController _searchController = TextEditingController();
 
+  late final ScrollController _scrollController;
+  List<Event> _events = [];
+  final PageStorageBucket _bucket = PageStorageBucket();
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _pref.getPrefEvents(isPlanned).then((eventList) {
+      setState(() {
+        _events = eventList;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     handler = AppBarActionsHandler(
@@ -42,67 +63,62 @@ class _HistoryEventsPageState extends State<HistoryEventsPage> {
       onToggleGridView: (val) => isGridView = val,
       onToggleShowSearch: (val) => _showSearchPanel = val,
     );
-    return Scaffold(
+
+    final filteredEvents = filterEvents(
+      events: _events,
+      removedEventIds: removedEventIds,
+      searchKeywords: _searchKeywords,
+      startDate: _startDate,
+      endDate: _endDate,
+    );
+
+    return PageStorage(
+      bucket: _bucket,
+      child: Scaffold(
         appBar: buildWhiteAppBar(
           isPlanned,
           '歷史活動',
           enableSearchAndExport: true, // ✅ 僅此頁啟用
           isGridView: isGridView,
           handler: handler,
-          setState: setState,  // 必須傳入
+          setState: setState, // 必須傳入
           onAdd: () => handler.onAddEvent(context, isPlanned),
         ),
         body: Column(
-        children: [
-          if (_showSearchPanel)
-            buildSearchPanel(
-              searchController: _searchController,
-              searchKeywords: _searchKeywords,
-              startDate: _startDate,
-              endDate: _endDate,
-              onSearchKeywordsChanged: (value) => _searchKeywords = value,
-              onStartDateChanged: (date) => _startDate = date,
-              onEndDateChanged: (date) => _endDate = date,
-              setState: setState,
-              context: context,
+          children: [
+            if (_showSearchPanel)
+              buildSearchPanel(
+                searchController: _searchController,
+                searchKeywords: _searchKeywords,
+                startDate: _startDate,
+                endDate: _endDate,
+                onSearchKeywordsChanged: (value) => _searchKeywords = value,
+                onStartDateChanged: (date) => _startDate = date,
+                onEndDateChanged: (date) => _endDate = date,
+                setState: setState,
+                context: context,
+              ),
+            Expanded(
+              child: _events.isEmpty
+                  ? const Center(child: Text('目前沒有歷史活動'))
+                  : EventList(
+                      events: filteredEvents,
+                      isGridView: isGridView,
+                      selectedEventIds: selectedEventIds,
+                      removedEventIds: removedEventIds,
+                      isEditable:
+                          !kIsWeb && (Platform.isAndroid || Platform.isIOS),
+                      isPlanned: isPlanned,
+                      pref: _pref,
+                      service: null,
+                      setState: setState,
+                      scrollController: _scrollController,
+                    ),
             ),
-          Expanded(
-            child: FutureBuilder<List<Event>>(
-              future: _pref.getPrefEvents(isPlanned),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('目前沒有歷史活動'));
-                }
-
-                final filteredEvents = filterEvents(
-                  events: snapshot.data!,
-                  removedEventIds: removedEventIds,
-                  searchKeywords: _searchKeywords,
-                  startDate: _startDate,
-                  endDate: _endDate,
-                );
-
-                return EventList(
-                  events: filteredEvents,
-                  isGridView: isGridView,
-                  selectedEventIds: selectedEventIds,
-                  removedEventIds: removedEventIds,
-                  isEditable: !kIsWeb && (Platform.isAndroid || Platform.isIOS),
-                  isPlanned: isPlanned,
-                  pref: _pref,
-                  service: null,
-                  setState: setState,
-                );
-              },
-            ),
-          ),
-        ],
+          ],
+        ),
+        floatingActionButton: null,
       ),
-      floatingActionButton: null,
     );
   }
 }
