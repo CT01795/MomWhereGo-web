@@ -17,7 +17,19 @@ class FirestoreService {
   }
 
   /// 儲存一筆建議活動至 Firestore（使用自定義 docId）
-  Future<void> saveSuggestedEvent(Event event) async {
+  Future<void> saveSuggestedEvent(Event event, bool isNew) async {
+    if (!isNew) {
+      // 先找出舊的 document（根據相同 event.id）
+      final querySnapshot = await _db
+          .collection('events')
+          .where('id', isEqualTo: event.id)
+          .get();
+
+      // 刪除找到的舊 document（可能有多筆，但應只會有一筆）
+      for (final doc in querySnapshot.docs) {
+        await doc.reference.delete();
+      }
+    }
     final docId = _generateDocId(event);
     final docRef = _db.collection('events').doc(docId);
     await docRef.set(event.toJson());
@@ -30,14 +42,13 @@ class FirestoreService {
         .orderBy(FieldPath.documentId)
         .snapshots()
         .map((snapshot) {
-          final events =
-            snapshot.docs.map((doc) {
-              final event = Event.fromJson(doc.data());
-              sortSubEvents(event.subEvents); // ✅ 排序 subEvents
-              return event;
-            }).toList();
-          return filterValidEvents(events); // ✅ 事件過濾
-          //return events;
+      final events = snapshot.docs.map((doc) {
+        final event = Event.fromJson(doc.data());
+        sortSubEvents(event.subEvents); // ✅ 排序 subEvents
+        return event;
+      }).toList();
+      return filterValidEvents(events); // ✅ 事件過濾
+      //return events;
     });
   }
 

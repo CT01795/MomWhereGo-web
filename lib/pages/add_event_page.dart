@@ -403,7 +403,7 @@ class _AddEventPageState extends State<AddEventPage> {
     );
 
     if ((Platform.isAndroid || Platform.isIOS) && widget.saveToFirebase) {
-      await FirestoreService().saveSuggestedEvent(event);
+      await FirestoreService().saveSuggestedEvent(event, widget.existingEvent == null);
       // ignore: use_build_context_synchronously
       showSnackBar(context, '建議活動已儲存至 Firebase');
     } else if (widget.saveToPlannedEvent) {
