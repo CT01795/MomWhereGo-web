@@ -84,6 +84,16 @@ class EventCardGraph extends StatelessWidget {
               ),
             ),
           ),
+          if (onDelete != null)
+            Positioned(
+              right: 8,
+              bottom: 8,
+              child: IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: onDelete,
+                tooltip: '刪除活動',
+              ),
+            ),
         ],
       ),
     );

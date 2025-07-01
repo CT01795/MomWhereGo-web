@@ -418,6 +418,55 @@ class EventList extends StatelessWidget {
                 builder: (_) => EventImageDialog(event: event),
               );
             },
+            onDelete: !kIsWeb
+                ? () async => await onRemoveEvent(
+                      context: context,
+                      isPlanned: isPlanned,
+                      event: event,
+                      service: service,
+                      pref: pref,
+                      removedEventIds: removedEventIds,
+                      setState: setState,
+                      dialogTitle: isPlanned == "Planned" ? '預計活動' : (isPlanned == "History" ? '歷史活動' : '建議活動'),
+                    )
+                : null,
+            trailing: !kIsWeb && isPlanned != "History"
+              ? StatefulBuilder(
+                  builder: (context, localSetState) {
+                    final isChecked = selectedEventIds.contains(event.id);
+                    return Transform.scale(
+                      scale: 1.5,
+                      child: Checkbox(
+                        value: isChecked,
+                        onChanged: (value) async {
+                          await onCheckboxChanged(
+                            context: context,
+                            pref: pref!,
+                            value: value,
+                            event: event,
+                            selectedEventIds: selectedEventIds,
+                            setState: (fn) {
+                              fn();
+                              // ✅ 單獨更新 checkbox 狀態
+                              localSetState(() {});
+                            },
+                            isPlanned: isPlanned == "Planned" ? "History" : "Planned",
+                            addedMessage: isPlanned == "Planned"
+                                ? '已加入歷史活動'
+                                : '已加入預計活動',
+                            duplicateMessage: isPlanned == "Planned"
+                                ? '此活動已在歷史活動中'
+                                : '此活動已在預計活動中',
+                            confirmTitle: isPlanned == "Planned"
+                                ? '歷史活動'
+                                : '預計活動',
+                          );
+                        },
+                      ),
+                    );
+                  },
+                )
+              : null,
           );
         },
       );
@@ -438,7 +487,7 @@ class EventList extends StatelessWidget {
                       setState: setState,
                     )
                 : null,
-            onDelete: isEditable
+            onDelete: !kIsWeb
                 ? () async => await onRemoveEvent(
                       context: context,
                       isPlanned: isPlanned,
@@ -450,7 +499,7 @@ class EventList extends StatelessWidget {
                       dialogTitle: isPlanned == "Planned" ? '預計活動' : (isPlanned == "History" ? '歷史活動' : '建議活動'),
                     )
                 : null,
-            trailing: isEditable && isPlanned != "History"
+            trailing: !kIsWeb && isPlanned != "History"
               ? StatefulBuilder(
                   builder: (context, localSetState) {
                     final isChecked = selectedEventIds.contains(event.id);

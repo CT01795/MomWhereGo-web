@@ -67,17 +67,17 @@ Future<void> handleCheckboxChanged({
 
     final isAlreadyAdded = existingEvents.any((e) => e.id == event.id);
 
-    if (isAlreadyAdded) {
+    /*if (isAlreadyAdded) {
       // ignore: use_build_context_synchronously
       showSnackBar(context, duplicateMessage);
       return;
-    }
+    }*/
 
     final shouldAdd = await showDialog<bool>(
       // ignore: use_build_context_synchronously
       context: context,
       builder: (context) => AlertDialog(
-        content: Text('新增$confirmTitle「${event.name}」？'),
+        content: Text('${isAlreadyAdded ? "$duplicateMessage，" : ""}新增$confirmTitle「${event.name}」？'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
