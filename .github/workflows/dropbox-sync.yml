@@ -9,10 +9,10 @@ jobs:
   sync_dropbox:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout gh-pages branch
+      - name: Checkout master branch (get script)
         uses: actions/checkout@v3
         with:
-          ref: gh-pages
+          ref: master
           fetch-depth: 0
 
       - name: Setup Python
@@ -28,10 +28,19 @@ jobs:
           DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
         run: python .github/scripts/dropbox_sync.py
 
-      - name: Commit and push changes
+      - name: Checkout gh-pages branch
+        run: |
+          git fetch origin gh-pages
+          git checkout -B gh-pages origin/gh-pages || git checkout -b gh-pages
+       
+      - name: Copy Dropbox files to repo root (or desired folder)
+        run: |
+          cp -r dropbox_files/* 
+
+      - name: Commit and push changes to gh-pages
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add dropbox_files
-          git commit -m "Sync Dropbox files to gh-pages" || echo "No changes to commit"
+          git add .
+          git diff-index --quiet HEAD || git commit -m "Sync Dropbox files to gh-pages"
           git push origin gh-pages
