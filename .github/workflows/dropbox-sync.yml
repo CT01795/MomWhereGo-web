@@ -28,19 +28,25 @@ jobs:
           DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
         run: python .github/scripts/dropbox_sync.py
 
+      - name: Save dropbox_files before switching branch
+        run: |
+          mv dropbox_files /tmp/dropbox_files
+
       - name: Checkout gh-pages branch
         run: |
           git fetch origin gh-pages
           git checkout -B gh-pages origin/gh-pages || git checkout -b gh-pages
-       
-      - name: Copy Dropbox files to repo root (or desired folder)
+
+      - name: Copy Dropbox files to gh-pages
         run: |
-          cp -r dropbox_files/* 
+          rm -rf dropbox_files
+          mkdir -p dropbox_files
+          cp -r /tmp/dropbox_files/* dropbox_files/
 
       - name: Commit and push changes to gh-pages
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add .
+          git add dropbox_files
           git diff-index --quiet HEAD || git commit -m "Sync Dropbox files to gh-pages"
           git push origin gh-pages
