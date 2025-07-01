@@ -14,7 +14,7 @@ class PlannedEventsPage extends StatefulWidget {
 
 class _PlannedEventsPageState extends State<PlannedEventsPage> {
   late AppBarActionsHandler handler;
-  bool isGridView = false; 
+  bool isGridView = true; 
   bool _showSearchPanel = false;
   String isPlanned = "Planned";
 
