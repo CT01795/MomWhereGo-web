@@ -145,7 +145,7 @@ class EventImageDialog extends StatelessWidget {
     }
 
     return Dialog(
-      insetPadding: const EdgeInsets.all(0),
+      insetPadding: const EdgeInsets.all(12),
       backgroundColor: Colors.white,
       child: Stack(
         children: [
@@ -173,12 +173,13 @@ class EventImageDialog extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Divider(),
+                  //const Divider(),
                 ],
                 if (event.subGraphs.isNotEmpty)
                   ...event.subGraphs.map((subGraph) {
                     return Column(
                       children: [
+                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: GestureDetector(
@@ -196,11 +197,10 @@ class EventImageDialog extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const Divider(),
                       ],
                     );
                   }),
-                const SizedBox(height: 12),
+                //const SizedBox(height: 12),
               ],
             ),
           ),

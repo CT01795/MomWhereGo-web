@@ -28,13 +28,13 @@ class EventCard extends StatelessWidget {
       child: Stack(
         children: [
           Card(
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             color: cardColor,
             elevation: 4,
             child: Padding(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
