@@ -26,11 +26,12 @@ List<Widget> buildAppBarActions({
         tooltip: '搜尋',
         onPressed: () => handler.onSearchToggle(),
       ),
-    IconButton(
-      icon: Icon(isGridView ? Icons.view_agenda : Icons.view_list, size: 40),
-      tooltip: '切換檢視模式',
-      onPressed: () => handler.onToggleView(),
-    ),
+    if(!kIsWeb)
+      IconButton(
+        icon: Icon(isGridView ? Icons.view_agenda : Icons.view_list, size: 40),
+        tooltip: '切換檢視模式',
+        onPressed: () => handler.onToggleView(),
+      ),
     if (enableSearchAndExport)
       IconButton(
         icon: const Icon(Icons.download, size: 40),
