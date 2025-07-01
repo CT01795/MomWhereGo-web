@@ -11,10 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout gh-pages branch
+      - name: Checkout master
         uses: actions/checkout@v3
         with:
-          ref: gh-pages   # 👈 這裡改為 gh-pages 分支
+          ref: master
+          fetch-depth: 0
 
       - name: Setup Python 3
         uses: actions/setup-python@v4
