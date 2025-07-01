@@ -11,12 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: List files for debugging
-        run: ls -R
-      - name: Checkout master branch
+      - name: Checkout gh-pages branch
         uses: actions/checkout@v3
         with:
-          ref: master   # 👈 這裡改為 gh-pages 分支
+          ref: gh-pages   # 👈 這裡改為 gh-pages 分支
 
       - name: Setup Python 3
         uses: actions/setup-python@v4
