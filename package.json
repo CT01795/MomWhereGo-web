@@ -1,9 +1,9 @@
 {
   "devDependencies": {
-    "master": "^6.3.0"
+    "gh-pages": "^6.3.0"
   },
 
   "scripts": {
-  "deploy": "master -d build/web"
+  "deploy": "gh-pages -d build/web"
 }
 }
