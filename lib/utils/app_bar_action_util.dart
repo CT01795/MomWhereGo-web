@@ -354,15 +354,35 @@ List<Event> filterEvents({
   return events.where((e) {
     if (removedEventIds.contains(e.id)) return false;
 
-    bool matchesKeywords = searchKeywords.trim().isEmpty;
-    for (final word in keywords) {
-      if (e.name.toLowerCase().contains(word) ||
+    // 对每个关键字，检查是否每个关键字都能匹配到事件的相关字段
+    bool matchesKeywords = keywords.every((word) {
+      // 检查事件本身的字段
+      bool matchesEventFields = e.city.toLowerCase().contains(word) ||
+          e.location.toLowerCase().contains(word) ||
+          e.name.toLowerCase().contains(word) ||
           e.type.toLowerCase().contains(word) ||
-          e.city.toLowerCase().contains(word)) {
-        matchesKeywords = true;
-        break;
+          e.description.toLowerCase().contains(word) ||
+          e.fee.toLowerCase().contains(word) ||
+          e.unit.toLowerCase().contains(word);
+
+      // 如果本身不匹配，检查每个子事件的字段
+      if (!matchesEventFields) {
+        for (SubEventItem se in e.subEvents) {
+          if (se.city.toLowerCase().contains(word) ||
+              se.location.toLowerCase().contains(word) ||
+              se.name.toLowerCase().contains(word) ||
+              se.type.toLowerCase().contains(word) ||
+              se.description.toLowerCase().contains(word) ||
+              se.fee.toLowerCase().contains(word) ||
+              se.unit.toLowerCase().contains(word)) {
+            return true;  // 如果有一个子事件匹配，则认为匹配
+          }
+        }
+        return false;  // 如果都没有匹配，则返回 false
       }
-    }
+
+      return true;  // 如果本身匹配，则直接返回 true
+    });
 
     bool matchesDate = true;
     if (startDate != null &&
@@ -445,7 +465,8 @@ class EventList extends StatelessWidget {
                     )
                 : null,
             trailing: !kIsWeb &&
-                      (isPlanned != "Suggested" || androidID != "7d64e279b5e99691")
+                    (isPlanned != "Suggested" ||
+                        androidID != "7d64e279b5e99691")
                 ? StatefulBuilder(
                     builder: (context, localSetState) {
                       final isChecked = selectedEventIds.contains(event.id);
@@ -454,7 +475,9 @@ class EventList extends StatelessWidget {
                         child: Row(
                           children: [
                             // 筆的圖標的條件
-                            if (!kIsWeb && (isPlanned != "Suggested" || androidID != "7d64e279b5e99691"))
+                            if (!kIsWeb &&
+                                (isPlanned != "Suggested" ||
+                                    androidID != "7d64e279b5e99691"))
                               IconButton(
                                 icon: const Icon(Icons.edit, size: 20),
                                 onPressed: () async {
@@ -467,11 +490,12 @@ class EventList extends StatelessWidget {
                                   );
                                 },
                               ),
-                            
+
                             // Checkbox 的條件
                             if (!kIsWeb &&
                                 isPlanned != "History" &&
-                                (isPlanned != "Suggested" || androidID != "7d64e279b5e99691"))
+                                (isPlanned != "Suggested" ||
+                                    androidID != "7d64e279b5e99691"))
                               Checkbox(
                                 value: isChecked,
                                 onChanged: (value) async {
@@ -495,8 +519,9 @@ class EventList extends StatelessWidget {
                                     duplicateMessage: isPlanned == "Planned"
                                         ? '此活動已在歷史活動中'
                                         : '此活動已在預計活動中',
-                                    confirmTitle:
-                                        isPlanned == "Planned" ? '歷史活動' : '預計活動',
+                                    confirmTitle: isPlanned == "Planned"
+                                        ? '歷史活動'
+                                        : '預計活動',
                                   );
                                 },
                               ),
@@ -545,7 +570,8 @@ class EventList extends StatelessWidget {
                     )
                 : null,
             trailing: !kIsWeb &&
-                      (isPlanned != "Suggested" || androidID != "7d64e279b5e99691")
+                    (isPlanned != "Suggested" ||
+                        androidID != "7d64e279b5e99691")
                 ? StatefulBuilder(
                     builder: (context, localSetState) {
                       final isChecked = selectedEventIds.contains(event.id);
@@ -554,7 +580,9 @@ class EventList extends StatelessWidget {
                         child: Row(
                           children: [
                             // 筆的圖標的條件
-                            if (!kIsWeb && (isPlanned != "Suggested" || androidID != "7d64e279b5e99691"))
+                            if (!kIsWeb &&
+                                (isPlanned != "Suggested" ||
+                                    androidID != "7d64e279b5e99691"))
                               IconButton(
                                 icon: const Icon(Icons.edit, size: 20),
                                 onPressed: () async {
@@ -567,11 +595,12 @@ class EventList extends StatelessWidget {
                                   );
                                 },
                               ),
-                            
+
                             // Checkbox 的條件
                             if (!kIsWeb &&
                                 isPlanned != "History" &&
-                                (isPlanned != "Suggested" || androidID != "7d64e279b5e99691"))
+                                (isPlanned != "Suggested" ||
+                                    androidID != "7d64e279b5e99691"))
                               Checkbox(
                                 value: isChecked,
                                 onChanged: (value) async {
@@ -595,8 +624,9 @@ class EventList extends StatelessWidget {
                                     duplicateMessage: isPlanned == "Planned"
                                         ? '此活動已在歷史活動中'
                                         : '此活動已在預計活動中',
-                                    confirmTitle:
-                                        isPlanned == "Planned" ? '歷史活動' : '預計活動',
+                                    confirmTitle: isPlanned == "Planned"
+                                        ? '歷史活動'
+                                        : '預計活動',
                                   );
                                 },
                               ),
