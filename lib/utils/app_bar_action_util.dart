@@ -26,7 +26,7 @@ List<Widget> buildAppBarActions({
         tooltip: '搜尋',
         onPressed: () => handler.onSearchToggle(),
       ),
-    if(!kIsWeb)
+    if (!kIsWeb)
       IconButton(
         icon: Icon(isGridView ? Icons.view_agenda : Icons.view_list, size: 40),
         tooltip: '切換檢視模式',
@@ -140,8 +140,8 @@ class AppBarActionsHandler {
         ),
       ),
     ).then((newEvent) {
-      refreshCallback();  // 先刷新頁面
-      return newEvent;     // 回傳新增的事件 (可能是 null)
+      refreshCallback(); // 先刷新頁面
+      return newEvent; // 回傳新增的事件 (可能是 null)
     });
   }
 }
@@ -345,7 +345,11 @@ List<Event> filterEvents({
   DateTime? startDate,
   DateTime? endDate,
 }) {
-  final keywords = searchKeywords.toLowerCase().split(RegExp(r'\s+')).where((word) => word.isNotEmpty).toList();
+  final keywords = searchKeywords
+      .toLowerCase()
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .toList();
 
   return events.where((e) {
     if (removedEventIds.contains(e.id)) return false;
@@ -361,10 +365,14 @@ List<Event> filterEvents({
     }
 
     bool matchesDate = true;
-    if (startDate != null && e.startDate != null && e.startDate!.isBefore(startDate)) {
+    if (startDate != null &&
+        e.startDate != null &&
+        e.startDate!.isBefore(startDate)) {
       matchesDate = false;
     }
-    if (endDate != null && e.startDate != null && e.startDate!.isAfter(endDate)) {
+    if (endDate != null &&
+        e.startDate != null &&
+        e.startDate!.isAfter(endDate)) {
       matchesDate = false;
     }
 
@@ -383,9 +391,11 @@ class EventList extends StatelessWidget {
   final FirestoreService? service;
   final void Function(void Function()) setState;
   final ScrollController scrollController;
+  final String androidID;
 
   const EventList({
     super.key,
+    required this.androidID,
     required this.events,
     required this.isGridView,
     required this.selectedEventIds,
@@ -418,7 +428,9 @@ class EventList extends StatelessWidget {
                 builder: (_) => EventImageDialog(event: event),
               );
             },
-            onDelete: !kIsWeb
+            onDelete: !kIsWeb &&
+                    (isPlanned != "Suggested" ||
+                        androidID != "7d64e279b5e99691")
                 ? () async => await onRemoveEvent(
                       context: context,
                       isPlanned: isPlanned,
@@ -427,46 +439,73 @@ class EventList extends StatelessWidget {
                       pref: pref,
                       removedEventIds: removedEventIds,
                       setState: setState,
-                      dialogTitle: isPlanned == "Planned" ? '預計活動' : (isPlanned == "History" ? '歷史活動' : '建議活動'),
+                      dialogTitle: isPlanned == "Planned"
+                          ? '預計活動'
+                          : (isPlanned == "History" ? '歷史活動' : '建議活動'),
                     )
                 : null,
-            trailing: !kIsWeb && isPlanned != "History"
-              ? StatefulBuilder(
-                  builder: (context, localSetState) {
-                    final isChecked = selectedEventIds.contains(event.id);
-                    return Transform.scale(
-                      scale: 1.5,
-                      child: Checkbox(
-                        value: isChecked,
-                        onChanged: (value) async {
-                          await onCheckboxChanged(
-                            context: context,
-                            pref: pref!,
-                            value: value,
-                            event: event,
-                            selectedEventIds: selectedEventIds,
-                            setState: (fn) {
-                              fn();
-                              // ✅ 單獨更新 checkbox 狀態
-                              localSetState(() {});
-                            },
-                            isPlanned: isPlanned == "Planned" ? "History" : "Planned",
-                            addedMessage: isPlanned == "Planned"
-                                ? '已加入歷史活動'
-                                : '已加入預計活動',
-                            duplicateMessage: isPlanned == "Planned"
-                                ? '此活動已在歷史活動中'
-                                : '此活動已在預計活動中',
-                            confirmTitle: isPlanned == "Planned"
-                                ? '歷史活動'
-                                : '預計活動',
-                          );
-                        },
-                      ),
-                    );
-                  },
-                )
-              : null,
+            trailing: !kIsWeb &&
+                      (isPlanned != "Suggested" || androidID != "7d64e279b5e99691")
+                ? StatefulBuilder(
+                    builder: (context, localSetState) {
+                      final isChecked = selectedEventIds.contains(event.id);
+                      return Transform.scale(
+                        scale: 1.5,
+                        child: Row(
+                          children: [
+                            // 筆的圖標的條件
+                            if (!kIsWeb && (isPlanned != "Suggested" || androidID != "7d64e279b5e99691"))
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 20),
+                                onPressed: () async {
+                                  // 這裡你可以進行編輯事件的操作
+                                  await onEditEvent(
+                                    context: context,
+                                    isPlanned: isPlanned,
+                                    event: event,
+                                    setState: setState,
+                                  );
+                                },
+                              ),
+                            
+                            // Checkbox 的條件
+                            if (!kIsWeb &&
+                                isPlanned != "History" &&
+                                (isPlanned != "Suggested" || androidID != "7d64e279b5e99691"))
+                              Checkbox(
+                                value: isChecked,
+                                onChanged: (value) async {
+                                  await onCheckboxChanged(
+                                    context: context,
+                                    pref: pref!,
+                                    value: value,
+                                    event: event,
+                                    selectedEventIds: selectedEventIds,
+                                    setState: (fn) {
+                                      fn();
+                                      // 單獨更新 checkbox 狀態
+                                      localSetState(() {});
+                                    },
+                                    isPlanned: isPlanned == "Planned"
+                                        ? "History"
+                                        : "Planned",
+                                    addedMessage: isPlanned == "Planned"
+                                        ? '已加入歷史活動'
+                                        : '已加入預計活動',
+                                    duplicateMessage: isPlanned == "Planned"
+                                        ? '此活動已在歷史活動中'
+                                        : '此活動已在預計活動中',
+                                    confirmTitle:
+                                        isPlanned == "Planned" ? '歷史活動' : '預計活動',
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  )
+                : null,
           );
         },
       );
@@ -479,7 +518,9 @@ class EventList extends StatelessWidget {
           return EventCard(
             event: event,
             index: index,
-            onTap: isEditable
+            onTap: isEditable &&
+                    (isPlanned != "Suggested" ||
+                        androidID != "7d64e279b5e99691")
                 ? () async => await onEditEvent(
                       context: context,
                       isPlanned: isPlanned,
@@ -487,7 +528,9 @@ class EventList extends StatelessWidget {
                       setState: setState,
                     )
                 : null,
-            onDelete: !kIsWeb
+            onDelete: !kIsWeb &&
+                    (isPlanned != "Suggested" ||
+                        androidID != "7d64e279b5e99691")
                 ? () async => await onRemoveEvent(
                       context: context,
                       isPlanned: isPlanned,
@@ -496,46 +539,73 @@ class EventList extends StatelessWidget {
                       pref: pref,
                       removedEventIds: removedEventIds,
                       setState: setState,
-                      dialogTitle: isPlanned == "Planned" ? '預計活動' : (isPlanned == "History" ? '歷史活動' : '建議活動'),
+                      dialogTitle: isPlanned == "Planned"
+                          ? '預計活動'
+                          : (isPlanned == "History" ? '歷史活動' : '建議活動'),
                     )
                 : null,
-            trailing: !kIsWeb && isPlanned != "History"
-              ? StatefulBuilder(
-                  builder: (context, localSetState) {
-                    final isChecked = selectedEventIds.contains(event.id);
-                    return Transform.scale(
-                      scale: 1.5,
-                      child: Checkbox(
-                        value: isChecked,
-                        onChanged: (value) async {
-                          await onCheckboxChanged(
-                            context: context,
-                            pref: pref!,
-                            value: value,
-                            event: event,
-                            selectedEventIds: selectedEventIds,
-                            setState: (fn) {
-                              fn();
-                              // ✅ 單獨更新 checkbox 狀態
-                              localSetState(() {});
-                            },
-                            isPlanned: isPlanned == "Planned" ? "History" : "Planned",
-                            addedMessage: isPlanned == "Planned"
-                                ? '已加入歷史活動'
-                                : '已加入預計活動',
-                            duplicateMessage: isPlanned == "Planned"
-                                ? '此活動已在歷史活動中'
-                                : '此活動已在預計活動中',
-                            confirmTitle: isPlanned == "Planned"
-                                ? '歷史活動'
-                                : '預計活動',
-                          );
-                        },
-                      ),
-                    );
-                  },
-                )
-              : null,
+            trailing: !kIsWeb &&
+                      (isPlanned != "Suggested" || androidID != "7d64e279b5e99691")
+                ? StatefulBuilder(
+                    builder: (context, localSetState) {
+                      final isChecked = selectedEventIds.contains(event.id);
+                      return Transform.scale(
+                        scale: 1.5,
+                        child: Row(
+                          children: [
+                            // 筆的圖標的條件
+                            if (!kIsWeb && (isPlanned != "Suggested" || androidID != "7d64e279b5e99691"))
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 20),
+                                onPressed: () async {
+                                  // 這裡你可以進行編輯事件的操作
+                                  await onEditEvent(
+                                    context: context,
+                                    isPlanned: isPlanned,
+                                    event: event,
+                                    setState: setState,
+                                  );
+                                },
+                              ),
+                            
+                            // Checkbox 的條件
+                            if (!kIsWeb &&
+                                isPlanned != "History" &&
+                                (isPlanned != "Suggested" || androidID != "7d64e279b5e99691"))
+                              Checkbox(
+                                value: isChecked,
+                                onChanged: (value) async {
+                                  await onCheckboxChanged(
+                                    context: context,
+                                    pref: pref!,
+                                    value: value,
+                                    event: event,
+                                    selectedEventIds: selectedEventIds,
+                                    setState: (fn) {
+                                      fn();
+                                      // 單獨更新 checkbox 狀態
+                                      localSetState(() {});
+                                    },
+                                    isPlanned: isPlanned == "Planned"
+                                        ? "History"
+                                        : "Planned",
+                                    addedMessage: isPlanned == "Planned"
+                                        ? '已加入歷史活動'
+                                        : '已加入預計活動',
+                                    duplicateMessage: isPlanned == "Planned"
+                                        ? '此活動已在歷史活動中'
+                                        : '此活動已在預計活動中',
+                                    confirmTitle:
+                                        isPlanned == "Planned" ? '歷史活動' : '預計活動',
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  )
+                : null,
           );
         },
       );

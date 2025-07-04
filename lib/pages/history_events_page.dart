@@ -14,7 +14,7 @@ class HistoryEventsPage extends StatefulWidget {
 
 class _HistoryEventsPageState extends State<HistoryEventsPage> {
   late AppBarActionsHandler handler;
-  bool isGridView = false; 
+  bool isGridView = true; 
   bool _showSearchPanel = false;
   String isPlanned = "History";
 
@@ -102,6 +102,7 @@ class _HistoryEventsPageState extends State<HistoryEventsPage> {
               child: _events.isEmpty
                   ? const Center(child: Text('目前沒有歷史活動'))
                   : EventList(
+                      androidID: '',
                       events: filteredEvents,
                       isGridView: isGridView,
                       selectedEventIds: selectedEventIds,

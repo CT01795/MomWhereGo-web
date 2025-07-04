@@ -5,7 +5,7 @@ import 'package:uuid/uuid.dart';
 final _uuid = const Uuid(); // 僅限這個檔案使用
 
 class Event {
-  final String id;
+  String id;
   String? masterGraphUrl; // 圖片 URL 而非 Image widget
   DateTime? startDate;
   DateTime? endDate;

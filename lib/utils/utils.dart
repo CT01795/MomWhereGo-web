@@ -1,7 +1,10 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/services/preference_service.dart';
+import 'package:uuid/uuid.dart';
 
 String formatEventDateTime(var event, String type) {
   DateTime? date;
@@ -77,7 +80,8 @@ Future<void> handleCheckboxChanged({
       // ignore: use_build_context_synchronously
       context: context,
       builder: (context) => AlertDialog(
-        content: Text('${isAlreadyAdded ? "$duplicateMessage，" : ""}新增$confirmTitle「${event.name}」？'),
+        content: Text(
+            '${isAlreadyAdded ? "$duplicateMessage，要重複新增嗎" : "新增$confirmTitle「${event.name}」"}？'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -99,8 +103,47 @@ Future<void> handleCheckboxChanged({
       selectedEventIds.add(event.id);
     });
 
-    await pref.savePrefEvent(isPlanned, event);
+    if (isAlreadyAdded) {
+      //如果已經存在，處理 subEvents 和 startDate
+      List<SubEventItem> sortedSubEvents = List.from(event.subEvents);
 
+      //根據 startDate 排序 subEvents
+      sortedSubEvents.sort((a, b) => a.startDate!.compareTo(b.startDate!));
+
+      //移除所有 startDate <= event.startDate 的 subEvents
+      sortedSubEvents.removeWhere((subEvent) =>
+          subEvent.startDate != null &&
+          !subEvent.startDate!.isAfter(event.startDate!));
+
+      // 創建一個新的 Event 實例，並且使用新的 id 和更新後的 startDate
+      Event updatedEvent = Event(
+        id: Uuid().v4(), // 新的 id
+        masterGraphUrl: event.masterGraphUrl,
+        startDate: !event.startDate!.isAfter(DateTime.now().add(Duration(days: -1))) ? DateTime.now() : event.startDate, // 將 event.startDate 更新為今天
+        endDate: event.endDate,
+        startTime: event.startTime,
+        endTime: event.endTime,
+        city: event.city,
+        location: event.location,
+        name: event.name,
+        type: event.type,
+        description: event.description,
+        fee: event.fee,
+        unit: event.unit,
+        subEvents: sortedSubEvents, // 更新後的 subEvents
+        subGraphs: event.subGraphs,
+      );
+      await pref.savePrefEvent(isPlanned, updatedEvent);
+      // ignore: use_build_context_synchronously
+      showSnackBar(context, addedMessage);
+      return;
+    }
+
+    if (!event.startDate!.isAfter(DateTime.now().add(Duration(days: -1)))) {
+      // 創建一個新的 Event 實例，並且使用新的 id 和更新後的 startDate
+      event.startDate = DateTime.now().add(Duration(days: -1));
+    }
+    await pref.savePrefEvent(isPlanned, event);
     // ignore: use_build_context_synchronously
     showSnackBar(context, addedMessage);
   } else {
@@ -202,4 +245,13 @@ int _compareTimeOfDay(TimeOfDay a, TimeOfDay b) {
 /// 顯示提示
 void showSnackBar(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+}
+
+Future<String?> getAndroidID() async {
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+
+  // Android ID
+  return androidInfo
+      .id; // This is the correct way to get the Android ID in the updated version
 }

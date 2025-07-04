@@ -102,6 +102,7 @@ class _PlannedEventsPageState extends State<PlannedEventsPage> {
               child: _events.isEmpty
                   ? const Center(child: Text('目前沒有預計活動'))
                   : EventList(
+                      androidID: '',
                       events: filteredEvents,
                       isGridView: isGridView,
                       selectedEventIds: selectedEventIds,

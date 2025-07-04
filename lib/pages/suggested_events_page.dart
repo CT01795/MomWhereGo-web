@@ -5,6 +5,7 @@ import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/services/firestore_service.dart';
 import 'package:mom_where_go/services/preference_service.dart';
 import 'package:mom_where_go/utils/app_bar_action_util.dart';
+import 'package:mom_where_go/utils/utils.dart';
 
 class SuggestedEventsPage extends StatefulWidget {
   const SuggestedEventsPage({super.key});
@@ -34,9 +35,22 @@ class _SuggestedEventsPageState extends State<SuggestedEventsPage> {
   late final ScrollController _scrollController;
   List<Event> _events = [];
   final PageStorageBucket _bucket = PageStorageBucket();
+
+  String? androidID = ''; // 用來儲存載入的 android ID
+  // 用來加載 Android ID 的函數，這是一個異步函數
+  Future<void> _loadAndroidID() async {
+    final id = await getAndroidID(); // 異步取得 Android ID
+    setState(() {
+      androidID = id; // 更新狀態，將取得的 ID 儲存
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    if (!kIsWeb) {
+      _loadAndroidID(); // 在小部件初始化時就加載資料
+    }
     _scrollController = ScrollController();
     _service.getSuggestedEvents().listen((eventList) {
       setState(() {
@@ -103,6 +117,7 @@ class _SuggestedEventsPageState extends State<SuggestedEventsPage> {
               child: _events.isEmpty
                   ? const Center(child: Text('目前沒有建議活動'))
                   : EventList(
+                      androidID: androidID!,  // 把加載完成的 androidID 傳遞給 EventList 小部件
                       events: filteredEvents,
                       isGridView: isGridView,
                       selectedEventIds: selectedEventIds,
