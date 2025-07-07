@@ -84,7 +84,7 @@ class EventCard extends StatelessWidget {
                         }*/
                       },
                       child: Text(
-                        event.masterUrl!,
+                        event.masterUrl  == null || event.masterUrl!.isEmpty ? '' : '點我看內文',
                         style: const TextStyle(
                           fontSize: 20,
                           color: Colors.blue,
@@ -152,7 +152,7 @@ class EventCard extends StatelessWidget {
                                       }*/
                                     },
                                     child: Text(
-                                      sub.subUrl!,
+                                      sub.subUrl == null || sub.subUrl!.isEmpty ? '' : '點我看內文',
                                       style: const TextStyle(
                                         fontSize: 20,
                                         color: Colors.blue,
