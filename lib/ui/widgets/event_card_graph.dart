@@ -114,8 +114,7 @@ class EventImageDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasMaster =
-        event.masterGraphUrl != null && event.masterGraphUrl!.isNotEmpty;
+    //final hasMaster = event.masterGraphUrl != null && event.masterGraphUrl!.isNotEmpty;
     //final hasSub = event.subGraphs.isNotEmpty;
 
     // ✅ 如果沒有圖片，回退顯示文字 EventCard

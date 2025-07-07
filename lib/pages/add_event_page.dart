@@ -1,10 +1,10 @@
-import 'dart:convert';
+//import 'dart:convert';
 import 'dart:io';
 
-import 'package:dropbox_client/dropbox_client.dart';
+//import 'package:dropbox_client/dropbox_client.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
+//import 'package:http/http.dart' as http;
+//import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/services/firestore_service.dart';
@@ -34,7 +34,7 @@ class AddEventPage extends StatefulWidget {
 class _AddEventPageState extends State<AddEventPage> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
-  final ImagePicker _picker = ImagePicker();
+  //final ImagePicker _picker = ImagePicker();
 
   DateTime startDate = DateTime.now();
   DateTime? endDate;
@@ -52,7 +52,7 @@ class _AddEventPageState extends State<AddEventPage> {
   String? masterGraphUrl;
   String? masterUrl;
   List<SubGraph> subGraphs = [];
-  bool _isUploading = false;
+  //bool _isUploading = false;
 
   @override
   void initState() {
@@ -249,7 +249,7 @@ class _AddEventPageState extends State<AddEventPage> {
     );
   }
 
-  Future<String?> _pickAndUploadImage(String filename) async {
+  /*Future<String?> _pickAndUploadImage(String filename) async {
     // 先確保 Dropbox 已授權
     String? accessToken = await Dropbox.getAccessToken();
     logger.i("accessToken : $accessToken");
@@ -321,7 +321,7 @@ class _AddEventPageState extends State<AddEventPage> {
       logger.i('Failed to create shared link: ${response.body}');
       return null;
     }
-  }
+  }*/
 
   /*Widget _buildMasterImagePicker() {
     return Column(
