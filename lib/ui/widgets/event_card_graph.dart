@@ -65,9 +65,10 @@ class EventCardGraph extends StatelessWidget {
                     InkWell(
                       onTap: () async {
                         final Uri url = Uri.parse(event.masterUrl!);
-                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                        await launchUrl(url,
+                            mode: LaunchMode.externalApplication);
                         // ignore: use_build_context_synchronously
-                        showSnackBar(context,'網址: $url');
+                        showSnackBar(context, '網址: $url');
                         /*if (await canLaunchUrl(url)) {
                           await launchUrl(url, mode: LaunchMode.externalApplication);
                         } else {
@@ -77,7 +78,9 @@ class EventCardGraph extends StatelessWidget {
                         }*/
                       },
                       child: Text(
-                        event.masterUrl  == null || event.masterUrl!.isEmpty ? '' : '點我看內文',
+                        event.masterUrl == null || event.masterUrl!.isEmpty
+                            ? ''
+                            : '點我看更多',
                         style: const TextStyle(
                           fontSize: 20,
                           color: Colors.blue,
@@ -117,46 +120,46 @@ class EventImageDialog extends StatelessWidget {
 
     // ✅ 如果沒有圖片，回退顯示文字 EventCard
     //if (!hasMaster) {
-      return Dialog(
-        backgroundColor: Colors.transparent, // ✅ 將 Dialog 本體透明
-        insetPadding: const EdgeInsets.symmetric(horizontal: 6), // ✅ 整體左右間距
-        child: Stack(
-          children: [
-            // 可滾動內容
-            SingleChildScrollView(
-              child: EventCard(
-                event: event,
-                index: 0,
-                onTap: () => Navigator.pop(context),
-              ),
+    return Dialog(
+      backgroundColor: Colors.transparent, // ✅ 將 Dialog 本體透明
+      insetPadding: const EdgeInsets.symmetric(horizontal: 6), // ✅ 整體左右間距
+      child: Stack(
+        children: [
+          // 可滾動內容
+          SingleChildScrollView(
+            child: EventCard(
+              event: event,
+              index: 0,
+              onTap: () => Navigator.pop(context),
             ),
+          ),
 
-            // 右上角浮動的關閉按鈕（白底）
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.black),
-                  tooltip: '關閉',
-                  onPressed: () => Navigator.pop(context),
-                ),
+          // 右上角浮動的關閉按鈕（白底）
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.black),
+                tooltip: '關閉',
+                onPressed: () => Navigator.pop(context),
               ),
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
     //}
 
     /*return Dialog(

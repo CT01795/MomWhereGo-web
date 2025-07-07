@@ -72,9 +72,10 @@ class EventCard extends StatelessWidget {
                     InkWell(
                       onTap: () async {
                         final Uri url = Uri.parse(event.masterUrl!);
-                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                        await launchUrl(url,
+                            mode: LaunchMode.externalApplication);
                         // ignore: use_build_context_synchronously
-                        showSnackBar(context,'網址: $url');
+                        showSnackBar(context, '網址: $url');
                         /*if (await canLaunchUrl(url)) {
                           await launchUrl(url, mode: LaunchMode.externalApplication);
                         } else {
@@ -84,7 +85,9 @@ class EventCard extends StatelessWidget {
                         }*/
                       },
                       child: Text(
-                        event.masterUrl  == null || event.masterUrl!.isEmpty ? '' : '點我看內文',
+                        event.masterUrl == null || event.masterUrl!.isEmpty
+                            ? ''
+                            : '點我看更多',
                         style: const TextStyle(
                           fontSize: 20,
                           color: Colors.blue,
@@ -136,13 +139,15 @@ class EventCard extends StatelessWidget {
                                     '${sub.city}．${sub.location}',
                                     style: const TextStyle(fontSize: 20),
                                   ),
-                                if (sub.subUrl != null && sub.subUrl!.isNotEmpty)
+                                if (sub.subUrl != null &&
+                                    sub.subUrl!.isNotEmpty)
                                   InkWell(
                                     onTap: () async {
                                       final Uri url = Uri.parse(sub.subUrl!);
-                                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                                      await launchUrl(url,
+                                          mode: LaunchMode.externalApplication);
                                       // ignore: use_build_context_synchronously
-                                      showSnackBar(context,'網址: $url');
+                                      showSnackBar(context, '網址: $url');
                                       /*if (await canLaunchUrl(url)) {
                                         await launchUrl(url, mode: LaunchMode.externalApplication);
                                       } else {
@@ -152,7 +157,9 @@ class EventCard extends StatelessWidget {
                                       }*/
                                     },
                                     child: Text(
-                                      sub.subUrl == null || sub.subUrl!.isEmpty ? '' : '點我看內文',
+                                      sub.subUrl == null || sub.subUrl!.isEmpty
+                                          ? ''
+                                          : '點我看更多',
                                       style: const TextStyle(
                                         fontSize: 20,
                                         color: Colors.blue,
