@@ -39,9 +39,8 @@ class PreferenceService {
       events = filterValidEvents(events);
     }
     events = _sortEvents(events);
-    return (isPlanned == "Planned"
-        ? events
-        : events.reversed.toList()).take(30).toList(); // ✅ 只取前 30 筆; // 升序 / 降序
+    return isPlanned == "History"
+        ? events.reversed.take(60).toList() : events.toList();
   }
 
   // ------------------- 刪除單筆活動 -------------------
