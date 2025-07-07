@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mom_where_go/extensions/time_of_day_extensions.dart';
-import 'package:mom_where_go/utils/utils.dart';
+import 'package:mom_where_go/utils/event_util.dart';
 import '../models/event.dart';
 
 class FirestoreService {

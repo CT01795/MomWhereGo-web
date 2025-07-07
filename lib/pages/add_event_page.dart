@@ -1,4 +1,4 @@
-import 'dart:convert'; 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dropbox_client/dropbox_client.dart';
@@ -50,6 +50,7 @@ class _AddEventPageState extends State<AddEventPage> {
   List<SubEventItem> subEvents = [];
 
   String? masterGraphUrl;
+  String? masterUrl;
   List<SubGraph> subGraphs = [];
   bool _isUploading = false;
 
@@ -59,6 +60,7 @@ class _AddEventPageState extends State<AddEventPage> {
     if (widget.existingEvent != null) {
       final e = widget.existingEvent!;
       masterGraphUrl = e.masterGraphUrl;
+      masterUrl = e.masterUrl;
       startDate = e.startDate!;
       endDate = e.endDate;
       startTime = e.startTime!;
@@ -219,6 +221,10 @@ class _AddEventPageState extends State<AddEventPage> {
                 initialValue: d.type,
                 onChanged: (v) => d.type = v),
             _buildTextField(
+                label: '連結',
+                initialValue: d.subUrl ?? '',
+                onChanged: (v) => d.subUrl = v),
+            _buildTextField(
                 label: '描述',
                 initialValue: d.description,
                 onChanged: (v) => d.description = v,
@@ -317,7 +323,7 @@ class _AddEventPageState extends State<AddEventPage> {
     }
   }
 
-  Widget _buildMasterImagePicker() {
+  /*Widget _buildMasterImagePicker() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -377,7 +383,7 @@ class _AddEventPageState extends State<AddEventPage> {
         ),
       ],
     );
-  }
+  }*/
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
@@ -385,6 +391,7 @@ class _AddEventPageState extends State<AddEventPage> {
     final event = Event(
       id: widget.existingEvent?.id ?? uuid.v4(),
       masterGraphUrl: masterGraphUrl,
+      masterUrl: masterUrl,
       startDate: startDate,
       endDate: endDate,
       startTime: startTime,
@@ -403,7 +410,8 @@ class _AddEventPageState extends State<AddEventPage> {
     );
 
     if ((Platform.isAndroid || Platform.isIOS) && widget.saveToFirebase) {
-      await FirestoreService().saveSuggestedEvent(event, widget.existingEvent == null);
+      await FirestoreService()
+          .saveSuggestedEvent(event, widget.existingEvent == null);
       // ignore: use_build_context_synchronously
       showSnackBar(context, '建議活動已儲存至 Firebase');
     } else if (widget.saveToPlannedEvent) {
@@ -454,6 +462,8 @@ class _AddEventPageState extends State<AddEventPage> {
               _buildTextField(
                   label: '關鍵字', initialValue: type, onChanged: (v) => type = v),
               _buildTextField(
+                  label: '連結', initialValue: masterUrl ?? '', onChanged: (v) => masterUrl = v),
+              _buildTextField(
                   label: '描述',
                   initialValue: description,
                   onChanged: (v) => description = v,
@@ -464,10 +474,10 @@ class _AddEventPageState extends State<AddEventPage> {
                   label: '相關單位',
                   initialValue: unit,
                   onChanged: (v) => unit = v),
-              const SizedBox(height: 8),
+              /*const SizedBox(height: 8),
               _buildMasterImagePicker(),
               const SizedBox(height: 8),
-              _buildSubGraphPicker(),
+              _buildSubGraphPicker(),*/
               const Divider(),
               const Text('細項活動'),
               ...List.generate(subEvents.length, _buildSubEventCard),
@@ -489,9 +499,7 @@ class _AddEventPageState extends State<AddEventPage> {
                     }
                   });
                 },
-                icon: const Icon(
-                  Icons.add, size: 40
-                ),
+                icon: const Icon(Icons.add, size: 40),
                 label: const Text('新增細項'),
               ),
             ],

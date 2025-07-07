@@ -4,9 +4,17 @@ import 'package:uuid/uuid.dart';
 
 final _uuid = const Uuid(); // 僅限這個檔案使用
 
+// 公用日期格式化函數
+DateTime? fromIso8601StringOrNull(String? date) =>
+    date != null ? DateTime.parse(date) : null;
+
+// 公用時間處理函數
+TimeOfDay? parseTimeOfDay(String? time) => time?.parseToTimeOfDay();
+
 class Event {
   String id;
   String? masterGraphUrl; // 圖片 URL 而非 Image widget
+  String? masterUrl;
   DateTime? startDate;
   DateTime? endDate;
   TimeOfDay? startTime;
@@ -24,6 +32,7 @@ class Event {
   Event({
     String? id,
     this.masterGraphUrl,
+    this.masterUrl,
     this.startDate,
     this.endDate,
     this.startTime,
@@ -45,6 +54,7 @@ class Event {
     return {
       'id': id,
       'masterGraphUrl': masterGraphUrl,
+      'masterUrl': masterUrl,
       'startDate': startDate?.toIso8601String(),
       'endDate': endDate?.toIso8601String(),
       'startTime': startTime?.formatTimeString(),
@@ -65,11 +75,11 @@ class Event {
     return Event(
       id: json['id'],
       masterGraphUrl: json['masterGraphUrl'],
-      startDate:
-          json['startDate'] != null ? DateTime.parse(json['startDate']) : null,
-      endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
-      startTime: (json['startTime'] as String?)?.parseToTimeOfDay(),
-      endTime: (json['endTime'] as String?)?.parseToTimeOfDay(),
+      masterUrl: json['masterUrl'],
+      startDate: fromIso8601StringOrNull(json['startDate']),
+      endDate: fromIso8601StringOrNull(json['endDate']),
+      startTime: parseTimeOfDay(json['startTime']),
+      endTime: parseTimeOfDay(json['endTime']),
       city: json['city'] ?? '',
       location: json['location'] ?? '',
       name: json['name'] ?? '',
@@ -82,15 +92,16 @@ class Event {
               .toList() ??
           [],
       subGraphs: (json['subGraphs'] as List<dynamic>?)
-                ?.map((e) => SubGraph.fromJson(e))
-                .toList() ??
-            [],
+              ?.map((e) => SubGraph.fromJson(e))
+              .toList() ??
+          [],
     );
   }
 }
 
 class SubEventItem {
   final String id;
+  String? subUrl;
   DateTime? startDate;
   DateTime? endDate;
   TimeOfDay? startTime;
@@ -105,6 +116,7 @@ class SubEventItem {
 
   SubEventItem({
     String? id,
+    this.subUrl,
     this.startDate,
     this.endDate,
     this.startTime,
@@ -120,6 +132,7 @@ class SubEventItem {
 
   SubEventItem copyWith({
     String? id,
+    String? subUrl,
     DateTime? startDate,
     DateTime? endDate,
     TimeOfDay? startTime,
@@ -134,6 +147,7 @@ class SubEventItem {
   }) {
     return SubEventItem(
       id: id ?? this.id,
+      subUrl:subUrl ?? this.subUrl,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       startTime: startTime ?? this.startTime,
@@ -151,6 +165,7 @@ class SubEventItem {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'subUrl': subUrl,
       'startDate': startDate?.toIso8601String(),
       'endDate': endDate?.toIso8601String(),
       'startTime': startTime?.formatTimeString(),
@@ -168,11 +183,11 @@ class SubEventItem {
   factory SubEventItem.fromJson(Map<String, dynamic> json) {
     return SubEventItem(
       id: json['id'],
-      startDate:
-          json['startDate'] != null ? DateTime.parse(json['startDate']) : null,
-      endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
-      startTime: (json['startTime'] as String?)?.parseToTimeOfDay(),
-      endTime: (json['endTime'] as String?)?.parseToTimeOfDay(),
+      subUrl: json['subUrl'],
+      startDate: fromIso8601StringOrNull(json['startDate']),
+      endDate: fromIso8601StringOrNull(json['endDate']),
+      startTime: parseTimeOfDay(json['startTime']),
+      endTime: parseTimeOfDay(json['endTime']),
       city: json['city'] ?? '',
       location: json['location'] ?? '',
       name: json['name'] ?? '',

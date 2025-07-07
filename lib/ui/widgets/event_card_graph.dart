@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/ui/widgets/event_card.dart';
+import 'package:mom_where_go/utils/date_util.dart';
 import 'package:mom_where_go/utils/utils.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EventCardGraph extends StatelessWidget {
   final Event event;
@@ -23,27 +25,6 @@ class EventCardGraph extends StatelessWidget {
   Widget build(BuildContext context) {
     final cardColor = Colors.grey.shade100;
     //index % 2 == 0 ? Colors.grey.shade100 : Colors.grey.shade300;
-
-    /*if (event.masterGraphUrl != null && event.masterGraphUrl!.isNotEmpty) {
-      return GestureDetector(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Card(
-              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              elevation: 4,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: buildAutoSizeImage(event.masterGraphUrl!),
-              ),
-            ),
-          ],
-        ),
-      );
-    }*/
     return GestureDetector(
       onTap: onTap,
       child: Stack(
@@ -80,6 +61,30 @@ class EventCardGraph extends StatelessWidget {
                       '${event.city}．${event.location}',
                       style: const TextStyle(fontSize: 20),
                     ),
+                  if (event.masterUrl != null && event.masterUrl!.isNotEmpty)
+                    InkWell(
+                      onTap: () async {
+                        final Uri url = Uri.parse(event.masterUrl!);
+                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                        // ignore: use_build_context_synchronously
+                        showSnackBar(context,'網址: $url');
+                        /*if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        } else {
+                          // 你可以加一個錯誤提示
+                          // ignore: use_build_context_synchronously
+                          showSnackBar(context,'無法開啟網址: $url');
+                        }*/
+                      },
+                      child: Text(
+                        event.masterUrl!,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -111,7 +116,7 @@ class EventImageDialog extends StatelessWidget {
     //final hasSub = event.subGraphs.isNotEmpty;
 
     // ✅ 如果沒有圖片，回退顯示文字 EventCard
-    if (!hasMaster) {
+    //if (!hasMaster) {
       return Dialog(
         backgroundColor: Colors.transparent, // ✅ 將 Dialog 本體透明
         insetPadding: const EdgeInsets.symmetric(horizontal: 6), // ✅ 整體左右間距
@@ -152,9 +157,9 @@ class EventImageDialog extends StatelessWidget {
           ],
         ),
       );
-    }
+    //}
 
-    return Dialog(
+    /*return Dialog(
       insetPadding: const EdgeInsets.all(12),
       backgroundColor: Colors.white,
       child: Stack(
@@ -240,7 +245,7 @@ class EventImageDialog extends StatelessWidget {
           ),
         ],
       ),
-    );
+    );*/
   }
 }
 

@@ -8,10 +8,40 @@ import 'package:mom_where_go/services/firestore_service.dart';
 import 'package:mom_where_go/services/preference_service.dart';
 import 'package:mom_where_go/ui/widgets/event_card.dart';
 import 'package:mom_where_go/ui/widgets/event_card_graph.dart';
+import 'package:mom_where_go/utils/event_util.dart';
 import 'package:mom_where_go/utils/export_util.dart';
 import 'package:mom_where_go/utils/utils.dart';
+import 'package:mom_where_go/utils/widgets_util.dart';
+
+AppBar buildWhiteAppBar(
+  String androidID,
+  String isPlanned,
+  String title, {
+  bool enableSearchAndExport = false,
+  required bool isGridView,
+  required AppBarActionsHandler handler,
+  required void Function(void Function()) setState, // 這裡改
+  VoidCallback? onAdd,
+}) {
+  return AppBar(
+    title: Text(title),
+    backgroundColor: Colors.white,
+    foregroundColor: Colors.black,
+    elevation: 0,
+    actions: buildAppBarActions(
+      androidID: androidID,
+      isPlanned: isPlanned,
+      enableSearchAndExport: enableSearchAndExport,
+      isGridView: isGridView,
+      handler: handler,
+      setState: setState,
+      onAdd: onAdd,
+    ),
+  );
+}
 
 List<Widget> buildAppBarActions({
+  required String androidID,
   required String isPlanned,
   required bool enableSearchAndExport,
   required bool isGridView,
@@ -26,7 +56,7 @@ List<Widget> buildAppBarActions({
         tooltip: '搜尋',
         onPressed: () => handler.onSearchToggle(),
       ),
-    if (!kIsWeb)
+    if (!kIsWeb && androidID == "BP1A.250505.005.B1")
       IconButton(
         icon: Icon(isGridView ? Icons.view_agenda : Icons.view_list, size: 40),
         tooltip: '切換檢視模式',
@@ -45,31 +75,6 @@ List<Widget> buildAppBarActions({
         onPressed: onAdd,
       ),
   ];
-}
-
-AppBar buildWhiteAppBar(
-  String isPlanned,
-  String title, {
-  bool enableSearchAndExport = false,
-  required bool isGridView,
-  required AppBarActionsHandler handler,
-  required void Function(void Function()) setState, // 這裡改
-  VoidCallback? onAdd,
-}) {
-  return AppBar(
-    title: Text(title),
-    backgroundColor: Colors.white,
-    foregroundColor: Colors.black,
-    elevation: 0,
-    actions: buildAppBarActions(
-      isPlanned: isPlanned,
-      enableSearchAndExport: enableSearchAndExport,
-      isGridView: isGridView,
-      handler: handler,
-      setState: setState,
-      onAdd: onAdd,
-    ),
-  );
 }
 
 class AppBarActionsHandler {
@@ -136,7 +141,7 @@ class AppBarActionsHandler {
       MaterialPageRoute(
         builder: (context) => AddEventPage(
           saveToFirebase: isPlanned == "Suggested",
-          saveToPlannedEvent: isPlanned == "Planned",
+          saveToPlannedEvent: isPlanned == "Planned", //還有 'History'的case
         ),
       ),
     ).then((newEvent) {
@@ -187,76 +192,26 @@ Widget buildSearchPanel({
         ),
         const SizedBox(height: 8),
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween, // 控制按鈕間的間距
           children: [
             Expanded(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.date_range),
-                label: Text(startDate == null
-                    ? '開始日期'
-                    : "${startDate.month.toString().padLeft(2, '0')}/${startDate.day.toString().padLeft(2, '0')}"),
-                onPressed: () async {
-                  DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: startDate ?? DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: endDate ?? DateTime(2100),
-                  );
-                  if (picked != null) {
-                    setState(() {
-                      onStartDateChanged(picked);
-                      if (endDate != null && picked.isAfter(endDate)) {
-                        onEndDateChanged(null);
-                      }
-                    });
-                  }
-                },
+              child: buildDateButton(
+                context: context,
+                date: startDate,
+                label: '開始日期',
+                icon: Icons.date_range,
+                onDateChanged: onStartDateChanged,
               ),
             ),
-            if (startDate != null)
-              IconButton(
-                icon: const Icon(Icons.clear),
-                tooltip: '清除開始日期',
-                onPressed: () {
-                  setState(() {
-                    onStartDateChanged(null);
-                  });
-                },
-              ),
-            const SizedBox(width: 4),
             Expanded(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.date_range),
-                label: Text(endDate == null
-                    ? '結束日期'
-                    : "${endDate.month.toString().padLeft(2, '0')}/${endDate.day.toString().padLeft(2, '0')}"),
-                onPressed: () async {
-                  DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: endDate ?? DateTime.now(),
-                    firstDate: startDate ?? DateTime(2000),
-                    lastDate: DateTime(2100),
-                  );
-                  if (picked != null) {
-                    setState(() {
-                      onEndDateChanged(picked);
-                      if (startDate != null && picked.isBefore(startDate)) {
-                        onStartDateChanged(null);
-                      }
-                    });
-                  }
-                },
+              child: buildDateButton(
+                context: context,
+                date: endDate,
+                label: '結束日期',
+                icon: Icons.date_range,
+                onDateChanged: onEndDateChanged,
               ),
             ),
-            if (endDate != null)
-              IconButton(
-                icon: const Icon(Icons.clear),
-                tooltip: '清除結束日期',
-                onPressed: () {
-                  setState(() {
-                    onEndDateChanged(null);
-                  });
-                },
-              ),
           ],
         ),
       ],
@@ -301,9 +256,7 @@ Future<void> onEditEvent({
     MaterialPageRoute(
       builder: (context) => AddEventPage(
         saveToFirebase: isPlanned == "Suggested" ? true : false,
-        saveToPlannedEvent: isPlanned == "Suggested"
-            ? false
-            : (isPlanned == "Planned" ? true : false),
+        saveToPlannedEvent: isPlanned == "Planned",
         existingEvent: event,
       ),
     ),
@@ -357,31 +310,23 @@ List<Event> filterEvents({
     // 对每个关键字，检查是否每个关键字都能匹配到事件的相关字段
     bool matchesKeywords = keywords.every((word) {
       // 检查事件本身的字段
-      bool matchesEventFields = e.city.toLowerCase().contains(word) ||
+      return e.city.toLowerCase().contains(word) ||
           e.location.toLowerCase().contains(word) ||
           e.name.toLowerCase().contains(word) ||
           e.type.toLowerCase().contains(word) ||
           e.description.toLowerCase().contains(word) ||
           e.fee.toLowerCase().contains(word) ||
-          e.unit.toLowerCase().contains(word);
-
-      // 如果本身不匹配，检查每个子事件的字段
-      if (!matchesEventFields) {
-        for (SubEventItem se in e.subEvents) {
-          if (se.city.toLowerCase().contains(word) ||
-              se.location.toLowerCase().contains(word) ||
-              se.name.toLowerCase().contains(word) ||
-              se.type.toLowerCase().contains(word) ||
-              se.description.toLowerCase().contains(word) ||
-              se.fee.toLowerCase().contains(word) ||
-              se.unit.toLowerCase().contains(word)) {
-            return true;  // 如果有一个子事件匹配，则认为匹配
-          }
-        }
-        return false;  // 如果都没有匹配，则返回 false
-      }
-
-      return true;  // 如果本身匹配，则直接返回 true
+          e.unit.toLowerCase().contains(word) ||
+          e.subEvents.any(
+            (se) =>
+                se.city.toLowerCase().contains(word) ||
+                se.location.toLowerCase().contains(word) ||
+                se.name.toLowerCase().contains(word) ||
+                se.type.toLowerCase().contains(word) ||
+                se.description.toLowerCase().contains(word) ||
+                se.fee.toLowerCase().contains(word) ||
+                se.unit.toLowerCase().contains(word),
+          );
     });
 
     bool matchesDate = true;
@@ -450,7 +395,7 @@ class EventList extends StatelessWidget {
             },
             onDelete: !kIsWeb &&
                     (isPlanned != "Suggested" ||
-                        androidID != "7d64e279b5e99691")
+                        androidID == "BP1A.250505.005.B1")
                 ? () async => await onRemoveEvent(
                       context: context,
                       isPlanned: isPlanned,
@@ -466,7 +411,7 @@ class EventList extends StatelessWidget {
                 : null,
             trailing: !kIsWeb &&
                     (isPlanned != "Suggested" ||
-                        androidID != "7d64e279b5e99691")
+                        androidID == "BP1A.250505.005.B1")
                 ? StatefulBuilder(
                     builder: (context, localSetState) {
                       final isChecked = selectedEventIds.contains(event.id);
@@ -477,7 +422,7 @@ class EventList extends StatelessWidget {
                             // 筆的圖標的條件
                             if (!kIsWeb &&
                                 (isPlanned != "Suggested" ||
-                                    androidID != "7d64e279b5e99691"))
+                                    androidID == "BP1A.250505.005.B1"))
                               IconButton(
                                 icon: const Icon(Icons.edit, size: 20),
                                 onPressed: () async {
@@ -495,7 +440,7 @@ class EventList extends StatelessWidget {
                             if (!kIsWeb &&
                                 isPlanned != "History" &&
                                 (isPlanned != "Suggested" ||
-                                    androidID != "7d64e279b5e99691"))
+                                    androidID == "BP1A.250505.005.B1"))
                               Checkbox(
                                 value: isChecked,
                                 onChanged: (value) async {
@@ -545,7 +490,7 @@ class EventList extends StatelessWidget {
             index: index,
             onTap: isEditable &&
                     (isPlanned != "Suggested" ||
-                        androidID != "7d64e279b5e99691")
+                        androidID == "BP1A.250505.005.B1")
                 ? () async => await onEditEvent(
                       context: context,
                       isPlanned: isPlanned,
@@ -555,7 +500,7 @@ class EventList extends StatelessWidget {
                 : null,
             onDelete: !kIsWeb &&
                     (isPlanned != "Suggested" ||
-                        androidID != "7d64e279b5e99691")
+                        androidID == "BP1A.250505.005.B1")
                 ? () async => await onRemoveEvent(
                       context: context,
                       isPlanned: isPlanned,
@@ -571,7 +516,7 @@ class EventList extends StatelessWidget {
                 : null,
             trailing: !kIsWeb &&
                     (isPlanned != "Suggested" ||
-                        androidID != "7d64e279b5e99691")
+                        androidID == "BP1A.250505.005.B1")
                 ? StatefulBuilder(
                     builder: (context, localSetState) {
                       final isChecked = selectedEventIds.contains(event.id);
@@ -582,7 +527,7 @@ class EventList extends StatelessWidget {
                             // 筆的圖標的條件
                             if (!kIsWeb &&
                                 (isPlanned != "Suggested" ||
-                                    androidID != "7d64e279b5e99691"))
+                                    androidID == "BP1A.250505.005.B1"))
                               IconButton(
                                 icon: const Icon(Icons.edit, size: 20),
                                 onPressed: () async {
@@ -600,7 +545,7 @@ class EventList extends StatelessWidget {
                             if (!kIsWeb &&
                                 isPlanned != "History" &&
                                 (isPlanned != "Suggested" ||
-                                    androidID != "7d64e279b5e99691"))
+                                    androidID == "BP1A.250505.005.B1"))
                               Checkbox(
                                 value: isChecked,
                                 onChanged: (value) async {

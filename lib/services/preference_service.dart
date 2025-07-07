@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:mom_where_go/utils/utils.dart';
+import 'package:mom_where_go/utils/event_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/event.dart';
 

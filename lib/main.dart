@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 import 'package:mom_where_go/firebase_options.dart';
+import 'package:mom_where_go/pages/event_page.dart';
+import 'package:mom_where_go/services/firestore_service.dart';
+import 'package:mom_where_go/services/preference_service.dart';
 
-import 'pages/history_events_page.dart';
-import 'pages/planned_events_page.dart';
-import 'pages/suggested_events_page.dart';
 import 'package:dropbox_client/dropbox_client.dart';
 
 var logger = Logger();
@@ -52,7 +52,11 @@ class MyApp extends StatelessWidget {
       //home: const MyHomePage(title: 'Dear, Where Are We Going?'),
       debugShowCheckedModeBanner: false,
       home: kIsWeb
-          ? SuggestedEventsPage()
+          ? EventPage(
+              pageTitle: '建議活動',
+              eventType: 'Suggested',
+              firestoreService: FirestoreService(),
+            )
           : const MyHomePage(
               title: 'Dear, Where Are We Going?'), // 👈 這裡要是你要的首頁
     );
@@ -72,14 +76,30 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<Widget> _buildPages() {
     if (kIsWeb) {
-      return [const SuggestedEventsPage()];
+      return [EventPage(
+        pageTitle: '建議活動',
+        eventType: 'Suggested',
+        firestoreService: FirestoreService(),
+      )];
     }
 
     // Android/iOS
-    return const [
-      SuggestedEventsPage(),
-      PlannedEventsPage(),
-      HistoryEventsPage(),
+    return [
+      EventPage(
+        pageTitle: '建議活動',
+        eventType: 'Suggested',
+        firestoreService: FirestoreService(),
+      ),
+      EventPage(
+        pageTitle: '預計活動',
+        eventType: 'Planned',
+        preferenceService: PreferenceService(),
+      ),
+      EventPage(
+        pageTitle: '歷史活動',
+        eventType: 'History',
+        preferenceService: PreferenceService(),
+      ),
     ];
   }
 
@@ -120,7 +140,11 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: kIsWeb
-          ? SuggestedEventsPage() // 網頁只顯示建議活動頁
+          ? EventPage(
+              pageTitle: '建議活動',
+              eventType: 'Suggested',
+              firestoreService: FirestoreService(),
+            ) // 網頁只顯示建議活動頁
           : pages[_selectedIndex],
       bottomNavigationBar: kIsWeb
           ? null
