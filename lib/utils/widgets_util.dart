@@ -37,3 +37,25 @@ Widget buildDateButton({
     ],
   );
 }
+
+Widget buildTypeTags(String types) {
+  final typeList = types.split(RegExp(r'[,，]')).map((e) => e.trim()).where((e) => e.isNotEmpty).take(3).toList();
+  return Wrap(
+    spacing: 8,
+    runSpacing: 4,
+    children: typeList.map((type) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          border: Border.all(color: Colors.blue),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          type,
+          style: const TextStyle(fontSize: 14, color: Colors.blue),
+        ),
+      );
+    }).toList(),
+  );
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mom_where_go/models/event.dart';
 import 'package:mom_where_go/utils/date_util.dart';
 import 'package:mom_where_go/utils/utils.dart';
+import 'package:mom_where_go/utils/widgets_util.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EventCard extends StatelessWidget {
@@ -30,13 +31,13 @@ class EventCard extends StatelessWidget {
       child: Stack(
         children: [
           Card(
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             color: cardColor,
             elevation: 4,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -68,33 +69,50 @@ class EventCard extends StatelessWidget {
                       '${event.city}．${event.location}',
                       style: const TextStyle(fontSize: 20),
                     ),
-                  if (event.masterUrl != null && event.masterUrl!.isNotEmpty)
-                    InkWell(
-                      onTap: () async {
-                        final Uri url = Uri.parse(event.masterUrl!);
-                        await launchUrl(url,
-                            mode: LaunchMode.externalApplication);
-                        // ignore: use_build_context_synchronously
-                        showSnackBar(context, '網址: $url');
-                        /*if (await canLaunchUrl(url)) {
-                          await launchUrl(url, mode: LaunchMode.externalApplication);
-                        } else {
-                          // 你可以加一個錯誤提示
-                          // ignore: use_build_context_synchronously
-                          showSnackBar(context,'無法開啟網址: $url');
-                        }*/
-                      },
-                      child: Text(
-                        event.masterUrl == null || event.masterUrl!.isEmpty
-                            ? ''
-                            : '點我看更多',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (event.masterUrl != null && event.masterUrl!.isNotEmpty)
+                        InkWell(
+                          onTap: () async {
+                            final Uri url = Uri.parse(event.masterUrl!);
+                            await launchUrl(url,
+                                mode: LaunchMode.externalApplication);
+                            // ignore: use_build_context_synchronously
+                            showSnackBar(context, '網址: $url');
+                            /*if (await canLaunchUrl(url)) {
+                              await launchUrl(url, mode: LaunchMode.externalApplication);
+                            } else {
+                              // 你可以加一個錯誤提示
+                              // ignore: use_build_context_synchronously
+                              showSnackBar(context,'無法開啟網址: $url');
+                            }*/
+                          },
+                          child: Text(
+                            event.masterUrl == null || event.masterUrl!.isEmpty
+                                ? ''
+                                : '點我看更多',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                        SizedBox(width: 8,),
+                      if (event.fee.isNotEmpty) 
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: buildTypeTags(event.fee),
+                        ),
+                        SizedBox(width: 8,),
+                      if (event.type.isNotEmpty) 
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: buildTypeTags(event.type),
+                        ),
+                    ],
+                  ),
                   ...event.subEvents.asMap().entries.map(
                     (entry) {
                       //final subIndex = entry.key;
