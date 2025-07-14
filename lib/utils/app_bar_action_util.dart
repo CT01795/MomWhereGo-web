@@ -8,6 +8,7 @@ import 'package:mom_where_go/services/firestore_service.dart';
 import 'package:mom_where_go/services/preference_service.dart';
 import 'package:mom_where_go/ui/widgets/event_card.dart';
 import 'package:mom_where_go/ui/widgets/event_card_graph.dart';
+import 'package:mom_where_go/utils/device_util.dart';
 import 'package:mom_where_go/utils/event_util.dart';
 import 'package:mom_where_go/utils/export_util.dart';
 import 'package:mom_where_go/utils/utils.dart';
@@ -56,7 +57,7 @@ List<Widget> buildAppBarActions({
         tooltip: '搜尋',
         onPressed: () => handler.onSearchToggle(),
       ),
-    if (!kIsWeb && androidID == "BP1A.250505.005.B1")
+    if (!kIsWeb && androidID == androidInfoId)
       IconButton(
         icon: Icon(isGridView ? Icons.view_agenda : Icons.view_list, size: 40),
         tooltip: '切換檢視模式',
@@ -395,7 +396,7 @@ class EventList extends StatelessWidget {
             },
             onDelete: !kIsWeb &&
                     (isPlanned != "Suggested" ||
-                        androidID == "BP1A.250505.005.B1")
+                        androidID == androidInfoId)
                 ? () async => await onRemoveEvent(
                       context: context,
                       isPlanned: isPlanned,
@@ -411,7 +412,7 @@ class EventList extends StatelessWidget {
                 : null,
             trailing: !kIsWeb &&
                     (isPlanned != "Suggested" ||
-                        androidID == "BP1A.250505.005.B1")
+                        androidID == androidInfoId)
                 ? StatefulBuilder(
                     builder: (context, localSetState) {
                       final isChecked = selectedEventIds.contains(event.id);
@@ -422,7 +423,7 @@ class EventList extends StatelessWidget {
                             // 筆的圖標的條件
                             if (!kIsWeb &&
                                 (isPlanned != "Suggested" ||
-                                    androidID == "BP1A.250505.005.B1"))
+                                    androidID == androidInfoId))
                               IconButton(
                                 icon: const Icon(Icons.edit, size: 20),
                                 onPressed: () async {
@@ -440,7 +441,7 @@ class EventList extends StatelessWidget {
                             if (!kIsWeb &&
                                 isPlanned != "History" &&
                                 (isPlanned != "Suggested" ||
-                                    androidID == "BP1A.250505.005.B1"))
+                                    androidID == androidInfoId))
                               Checkbox(
                                 value: isChecked,
                                 onChanged: (value) async {
@@ -490,7 +491,7 @@ class EventList extends StatelessWidget {
             index: index,
             onTap: isEditable &&
                     (isPlanned != "Suggested" ||
-                        androidID == "BP1A.250505.005.B1")
+                        androidID == androidInfoId)
                 ? () async => await onEditEvent(
                       context: context,
                       isPlanned: isPlanned,
@@ -500,7 +501,7 @@ class EventList extends StatelessWidget {
                 : null,
             onDelete: !kIsWeb &&
                     (isPlanned != "Suggested" ||
-                        androidID == "BP1A.250505.005.B1")
+                        androidID == androidInfoId)
                 ? () async => await onRemoveEvent(
                       context: context,
                       isPlanned: isPlanned,
@@ -516,7 +517,7 @@ class EventList extends StatelessWidget {
                 : null,
             trailing: !kIsWeb &&
                     (isPlanned != "Suggested" ||
-                        androidID == "BP1A.250505.005.B1")
+                        androidID == androidInfoId)
                 ? StatefulBuilder(
                     builder: (context, localSetState) {
                       final isChecked = selectedEventIds.contains(event.id);
@@ -527,7 +528,7 @@ class EventList extends StatelessWidget {
                             // 筆的圖標的條件
                             if (!kIsWeb &&
                                 (isPlanned != "Suggested" ||
-                                    androidID == "BP1A.250505.005.B1"))
+                                    androidID == androidInfoId))
                               IconButton(
                                 icon: const Icon(Icons.edit, size: 20),
                                 onPressed: () async {
@@ -545,7 +546,7 @@ class EventList extends StatelessWidget {
                             if (!kIsWeb &&
                                 isPlanned != "History" &&
                                 (isPlanned != "Suggested" ||
-                                    androidID == "BP1A.250505.005.B1"))
+                                    androidID == androidInfoId))
                               Checkbox(
                                 value: isChecked,
                                 onChanged: (value) async {
